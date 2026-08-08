@@ -1,2 +1,14 @@
-'use client';import Link from'next/link';import{useLang}from'./LanguageProvider';
-export default function AppHeader(){const{lang,setLang,t}=useLang();return <header className="top"><div className="topin"><Link className="brand" href="/"><span className="mark">Q</span><div>QARAR <em>AI</em><small>Decision Intelligence</small></div></Link><nav className="nav"><Link href="/executive">{t('التنفيذي','Executive')}</Link><Link href="/project">{t('مدير المشروع','Project Manager')}</Link><Link href="/knowledge">{t('المعرفة','Knowledge')}</Link><Link href="/connect">{t('الربط','Connect')}</Link><Link href="/automate">{t('الأتمتة','Automate')}</Link><Link href="/developer">{t('المطور','Developer')}</Link><Link href="/architecture">{t('المعمارية','Architecture')}</Link><button className="langBtn" onClick={()=>setLang(lang==='ar'?'en':'ar')}>{lang==='ar'?'EN':'عربي'}</button><Link href="/login">{t('الدخول','Sign in')}</Link><Link className="navCta" href="/cases/new">{t('قرار جديد','New decision')}</Link></nav></div></header>}
+'use client';
+import Link from 'next/link';
+import {usePathname} from 'next/navigation';
+import {useLang} from './LanguageProvider';
+
+export default function AppHeader(){
+  const{lang,setLang,t}=useLang();const path=usePathname();
+  const links=[['/project',t('مساحة المشغّل','Operator workspace')],['/executive',t('مكتب التنفيذي','Executive office')],['/knowledge',t('الملفات والمعرفة','Files & knowledge')]];
+  return <header className="top"><div className="topin">
+    <Link className="brand" href="/"><span className="mark">ق</span><div><b>{t('قرار','QARAR')}</b><small>{t('وضوح يقود إلى قرار','Clarity that leads to action')}</small></div></Link>
+    <nav className="nav" aria-label={t('التنقل الرئيسي','Main navigation')}>{links.map(([href,label])=><Link className={path.startsWith(href)?'active':''} href={href} key={href}>{label}</Link>)}</nav>
+    <div className="headerActions"><button className="langBtn" onClick={()=>setLang(lang==='ar'?'en':'ar')}>{lang==='ar'?'English':'العربية'}</button><Link className="loginLink" href="/login">{t('تسجيل الدخول','Sign in')}</Link><Link className="navCta" href="/cases/new">{t('حالة قرار جديدة','New decision case')}</Link></div>
+  </div></header>
+}

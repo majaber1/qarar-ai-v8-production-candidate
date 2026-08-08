@@ -1,7 +1,10 @@
-import'./globals.css';import{LanguageProvider}from'@/components/LanguageProvider';import AppHeader from'@/components/AppHeader';
-export const metadata={title:'Qarar AI — Enterprise Decision Intelligence',description:'From Evidence to Decision to Action'};
-export default function Layout({children}:{children:React.ReactNode}){return <html lang="ar" dir="rtl"><head>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-</head><body><LanguageProvider><AppHeader/>{children}<footer><b>QARAR AI</b><span>Human accountable. AI assisted.</span><small>Core + Knowledge active · Connect authenticated · Automation approval-enforced</small></footer></LanguageProvider></body></html>}
+import './globals.css';
+import {IBM_Plex_Sans_Arabic,Inter} from 'next/font/google';
+import {LanguageProvider} from '@/components/LanguageProvider';
+import AppHeader from '@/components/AppHeader';
+
+const arabic=IBM_Plex_Sans_Arabic({subsets:['arabic'],weight:['400','500','600','700'],variable:'--font-arabic'});
+const latin=Inter({subsets:['latin'],variable:'--font-latin'});
+
+export const metadata={title:'قرار | منصة القرار المؤسسي',description:'حوّل ملفات المشروع وأسئلته إلى قرار واضح، موثّق، وقابل للتنفيذ.'};
+export default function Layout({children}:{children:React.ReactNode}){return <html lang="ar" dir="rtl" className={`${arabic.variable} ${latin.variable}`}><body><LanguageProvider><AppHeader/>{children}<footer><div><b>قرار</b><span>منصة قرار مؤسسية مبنية للسوق العربي.</span></div><small>الإنسان يعتمد القرار، والذكاء الاصطناعي يوضّح الصورة.</small></footer></LanguageProvider></body></html>}
