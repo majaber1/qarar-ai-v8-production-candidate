@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app.core.config import settings
 from app.core.database import Base
 # Import every model module so Base.metadata is fully populated before autogenerate/upgrade.
-from app.models import case, knowledge, fabric, security, platform  # noqa: F401
+from app.models import case, knowledge, fabric, security, platform, workspace  # noqa: F401
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url)

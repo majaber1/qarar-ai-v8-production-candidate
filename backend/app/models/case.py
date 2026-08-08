@@ -1,6 +1,6 @@
 from datetime import date,datetime,timezone
 from typing import Any
-from sqlalchemy import JSON,Date,DateTime,String,Text
+from sqlalchemy import JSON,Date,DateTime,Integer,String,Text
 from sqlalchemy.orm import Mapped,mapped_column
 from app.core.database import Base
 
@@ -9,6 +9,7 @@ class DecisionCase(Base):
     id:Mapped[int]=mapped_column(primary_key=True)
     tenant_id:Mapped[str]=mapped_column(String(80),index=True)
     created_by:Mapped[str]=mapped_column(String(200),index=True)
+    project_id:Mapped[int|None]=mapped_column(Integer,nullable=True,index=True)
     title:Mapped[str]=mapped_column(String(250))
     description:Mapped[str]=mapped_column(Text)
     urgency:Mapped[str]=mapped_column(String(30),default='medium')

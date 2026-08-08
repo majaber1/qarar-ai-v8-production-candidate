@@ -13,6 +13,7 @@ from app.core.ratelimit import check_ai_rate_limit, check_budget
 from app.models.case import DecisionCase
 from app.models.fabric import KnowledgeSource
 from app.models.security import DecisionApproval
+from app.models.workspace import Project
 from app.schemas.case import CaseCreate, CaseResponse, ApprovalRequest
 from app.services.advisor import analyze_case
 from app.services.clarification import classify_missing_information
@@ -32,10 +33,12 @@ def _case_for_tenant(db: Session, case_id: int, tenant_id: str) -> DecisionCase 
 
 @router.post('', response_model=CaseResponse, status_code=201)
 def create_case(p: CaseCreate, db: Session = Depends(get_db), principal: Principal = Depends(require_principal)):
+    if p.project_id is not None and not db.scalar(select(Project).where(Project.id == p.project_id, Project.tenant_id == principal.tenant_id)):
+        raise HTTPException(404, 'Project not found')
     x = DecisionCase(tenant_id=principal.tenant_id, created_by=principal.subject, **p.model_dump())
     db.add(x); db.commit(); db.refresh(x)
     record_audit(principal.tenant_id, principal.subject, 'case_created', auth_type=principal.auth_type,
-                 resource_type='case', resource_id=x.id, metadata={'title': x.title})
+                 resource_type='case', resource_id=x.id, metadata={'title': x.title, 'project_id': x.project_id})
     return x
 
 

@@ -1,12 +1,14 @@
 const BASE = "/api/qarar";
 
 export type QCase = {
-  id:number; title:string; description:string; urgency:string; category?:string; language?:string; status:string;
+  id:number; project_id?:number; title:string; description:string; urgency:string; category?:string; language?:string; status:string;
   selected_agents?:string[]; skipped_agents?:string[]; agent_results?:Record<string,any>; analysis?:Record<string,any>;
   audit_log?:any[]; analysis_source?:string; approved_option?:string; decision_owner?:string; due_date?:string;
   pending_clarifications?:string[]; clarification_answers?:Record<string,string>;
   created_at:string; updated_at:string;
 };
+
+export type QProject={id:number;name:string;objective:string;owner:string;status:string;created_at:string;updated_at:string};
 
 export type MCPServer = {
   id:number; name:string; url:string; enabled:boolean; health_status?:string;
@@ -42,6 +44,11 @@ export async function streamAnalyze(id:string,onEvent:(e:any)=>void){
 }
 
 export const api = {
+  projects:():Promise<QProject[]>=>req('/projects'),
+  project:(id:string)=>req(`/projects/${id}`),
+  createProject:(x:{name:string;objective:string;owner:string})=>req('/projects',{method:'POST',body:JSON.stringify(x)}),
+  accessRequests:()=>req('/access-requests'),
+  approveAccess:(id:number)=>req(`/access-requests/${id}/approve`,{method:'POST'}),
   list:()=>req('/cases'),
   get:(id:string)=>req(`/cases/${id}`),
   create:(x:any)=>req('/cases',{method:'POST',body:JSON.stringify(x)}),
@@ -61,10 +68,10 @@ export const api = {
   },
 
   // Knowledge Fabric
-  fabricSources:(caseId?:string)=>req(`/fabric/sources${caseId?`?case_id=${caseId}`:''}`),
+  fabricSources:(caseId?:string,projectId?:string)=>req(`/fabric/sources?${new URLSearchParams({...caseId?{case_id:caseId}:{},...projectId?{project_id:projectId}:{}})}`),
   fabricAsk:(x:any)=>req('/fabric/ask',{method:'POST',body:JSON.stringify(x)}),
-  fabricUpload:async(file:File,caseId?:string,trust='B')=>{
-    const fd=new FormData(); fd.append('file',file); fd.append('trust_level',trust); if(caseId) fd.append('case_id',caseId);
+  fabricUpload:async(file:File,caseId?:string,trust='B',projectId?:string)=>{
+    const fd=new FormData(); fd.append('file',file); fd.append('trust_level',trust); if(caseId) fd.append('case_id',caseId); if(projectId)fd.append('project_id',projectId);
     const r=await fetch(`${BASE}/fabric/upload`,{method:'POST',body:fd});
     if(!r.ok) throw new Error(await r.text()); return r.json();
   },

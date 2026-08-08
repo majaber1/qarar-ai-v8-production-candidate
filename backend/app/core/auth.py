@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hmac
+import hashlib
 import json
 from contextvars import ContextVar
 from dataclasses import dataclass, field
@@ -64,6 +65,22 @@ def authenticate_key(key: str | None) -> Principal | None:
     if settings.mcp_api_key and hmac.compare_digest(str(settings.mcp_api_key), str(key)):
         return Principal(subject="mcp-service", tenant_id=settings.mcp_tenant_id,
                           roles=("integration_service",), auth_type="mcp_api_key")
+    # Password logins issue opaque, short-lived tokens. Only a SHA-256 digest is stored.
+    try:
+        from datetime import datetime, timezone
+        from sqlalchemy import select
+        from app.core.database import SessionLocal
+        from app.models.workspace import UserSession, WorkspaceUser
+        with SessionLocal() as db:
+            row = db.execute(select(UserSession, WorkspaceUser).join(WorkspaceUser, WorkspaceUser.id == UserSession.user_id).where(
+                UserSession.token_hash == hashlib.sha256(str(key).encode()).hexdigest(), UserSession.revoked.is_(False),
+                UserSession.expires_at > datetime.now(timezone.utc), WorkspaceUser.active.is_(True))).first()
+            if row:
+                session, user = row
+                return Principal(subject=f'user:{user.id}', tenant_id=user.tenant_id, roles=(user.role,),
+                                 display_name=user.full_name, email=user.email, auth_type='session')
+    except Exception:
+        pass
     return None
 
 

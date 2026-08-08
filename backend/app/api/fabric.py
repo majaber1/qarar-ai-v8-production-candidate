@@ -11,6 +11,7 @@ from app.core.database import get_db
 from app.core.ratelimit import check_ai_rate_limit, check_budget
 from app.models.fabric import KnowledgeSource
 from app.models.case import DecisionCase
+from app.models.workspace import Project
 from app.services.object_storage import storage
 from app.services.fabric import ingest_source,hybrid_search
 from app.services.knowledge_qa import ask_knowledge
@@ -33,6 +34,7 @@ async def upload(
     background:BackgroundTasks,
     file:UploadFile=File(...),
     case_id:int|None=Form(None),
+    project_id:int|None=Form(None),
     trust_level:str=Form('B'),
     source_type:str=Form('file'),
     db:Session=Depends(get_db),
@@ -42,12 +44,14 @@ async def upload(
     if len(data)>maxb: raise HTTPException(413,f'File too large; max {settings.max_file_mb} MB')
     if case_id is not None and not db.scalar(select(DecisionCase).where(DecisionCase.id==case_id,DecisionCase.tenant_id==principal.tenant_id)):
         raise HTTPException(404,'Case not found')
+    if project_id is not None and not db.scalar(select(Project).where(Project.id==project_id,Project.tenant_id==principal.tenant_id)):
+        raise HTTPException(404,'Project not found')
     try:key=storage().put(file.filename or 'upload.bin',data)
     except Exception as e: raise HTTPException(500,f'Object storage failed: {e}')
     # Trust A is reserved for verified/curated sources; ordinary upload cannot self-assert A.
     effective_trust = trust_level if trust_level in {'B','C','D'} else 'B'
     src=KnowledgeSource(
-        tenant_id=principal.tenant_id,case_id=case_id,source_type=source_type,title=file.filename or 'Uploaded file',
+        tenant_id=principal.tenant_id,case_id=case_id,project_id=project_id,source_type=source_type,title=file.filename or 'Uploaded file',
         source_ref=file.filename,object_key=key,trust_level=effective_trust,status='queued',
         metadata_json=json.dumps({'content_type':file.content_type,'size_bytes':len(data),'uploaded_by':principal.subject})
     )
@@ -61,10 +65,11 @@ async def upload(
             'object_key':src.object_key,'error':src.error,'malware_scan_enabled':settings.malware_scan_enabled}
 
 @router.get('/sources')
-def sources(case_id:int|None=None,db:Session=Depends(get_db),principal:Principal=Depends(require_principal)):
+def sources(case_id:int|None=None,project_id:int|None=None,db:Session=Depends(get_db),principal:Principal=Depends(require_principal)):
     q=select(KnowledgeSource).where(KnowledgeSource.tenant_id==principal.tenant_id).order_by(KnowledgeSource.created_at.desc())
     if case_id is not None:q=q.where((KnowledgeSource.case_id==case_id)|(KnowledgeSource.case_id.is_(None)))
-    return [{'id':x.id,'case_id':x.case_id,'source_type':x.source_type,'title':x.title,'source_ref':x.source_ref,'trust_level':x.trust_level,'status':x.status,'error':x.error,'created_at':x.created_at} for x in db.scalars(q).all()]
+    if project_id is not None:q=q.where(KnowledgeSource.project_id==project_id)
+    return [{'id':x.id,'case_id':x.case_id,'project_id':x.project_id,'source_type':x.source_type,'title':x.title,'source_ref':x.source_ref,'trust_level':x.trust_level,'status':x.status,'error':x.error,'created_at':x.created_at} for x in db.scalars(q).all()]
 
 @router.get('/search')
 def search(q:str,case_id:int|None=None,limit:int=10,principal:Principal=Depends(require_principal)):

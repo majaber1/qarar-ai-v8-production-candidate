@@ -111,7 +111,7 @@ def ingest_source(source_id: int):
         new_chunks = []
         for i, (content, vec) in enumerate(zip(chunks, vectors)):
             ch = KnowledgeChunk(
-                source_id=s.id, tenant_id=s.tenant_id, case_id=s.case_id,
+                source_id=s.id, tenant_id=s.tenant_id, case_id=s.case_id, project_id=s.project_id,
                 chunk_index=i, content=content,
                 embedding_json=json.dumps(vec) if vec else None,
                 metadata_json=json.dumps({

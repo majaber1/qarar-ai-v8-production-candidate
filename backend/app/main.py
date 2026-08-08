@@ -15,10 +15,12 @@ from app.api.platform import router as platform_router
 from app.api.knowledge import router as legacy_knowledge_router
 from app.api.fabric import router as fabric_router
 from app.api.connect import router as connect_router
+from app.api.workspace import router as workspace_router
 from app.models.knowledge import KnowledgeItem
 from app.models.fabric import KnowledgeSource, KnowledgeChunk, AutomationRun
 from app.models.security import DecisionApproval, AutomationCallbackReceipt
 from app.models.platform import AuditEvent, UsageRecord, CostBudget, MCPServerRegistration, ScanResult
+from app.models.workspace import Project, WorkspaceUser, AccessRequest, UserSession
 from app.services.registry import registry
 
 configure_logging()
@@ -76,7 +78,7 @@ async def observability_and_rate_limit(request: Request, call_next):
     return response
 
 
-for r in [cases_router, platform_router, legacy_knowledge_router, fabric_router, connect_router]:
+for r in [cases_router, platform_router, legacy_knowledge_router, fabric_router, connect_router, workspace_router]:
     app.include_router(r, prefix='/api')
 
 

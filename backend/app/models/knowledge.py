@@ -8,6 +8,7 @@ class KnowledgeItem(Base):
     id:Mapped[int]=mapped_column(primary_key=True)
     tenant_id:Mapped[str]=mapped_column(String(80),index=True)
     case_id:Mapped[int|None]=mapped_column(Integer,nullable=True,index=True)
+    project_id:Mapped[int|None]=mapped_column(Integer,nullable=True,index=True)
     source_type:Mapped[str]=mapped_column(String(30),index=True)
     title:Mapped[str]=mapped_column(String(500))
     source_ref:Mapped[str|None]=mapped_column(String(1000),nullable=True)

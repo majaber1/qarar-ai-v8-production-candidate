@@ -3,6 +3,7 @@ from typing import Any,Literal
 from pydantic import BaseModel,ConfigDict,Field
 
 class CaseCreate(BaseModel):
+    project_id:int|None=None
     title:str=Field(min_length=3,max_length=250)
     description:str=Field(min_length=10)
     urgency:Literal['low','medium','high','critical']='medium'
@@ -18,6 +19,7 @@ class CaseResponse(BaseModel):
     id:int
     tenant_id:str
     created_by:str
+    project_id:int|None
     title:str
     description:str
     urgency:str
