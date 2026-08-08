@@ -1,0 +1,1 @@
+Cloud migrations to a new region require NCA data residency compliance review before go-live.

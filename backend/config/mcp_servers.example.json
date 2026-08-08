@@ -1,0 +1,6 @@
+{
+  "servers": [
+    {"id":"github","name":"GitHub MCP","url":"https://api.githubcopilot.com/mcp/","enabled":false,"auth":{"type":"bearer","env":"GITHUB_TOKEN"}},
+    {"id":"customer","name":"Customer MCP","url":"https://mcp.customer.example/mcp","enabled":false,"auth":{"type":"oauth"}}
+  ]
+}

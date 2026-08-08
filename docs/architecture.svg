@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="980" viewBox="0 0 1400 980">
+<style>.bg{fill:#071f19}.box{fill:#0d342a;stroke:#2d6855;stroke-width:2}.gold{fill:#d2ae5b}.t{font:700 27px Arial;fill:#fff}.s{font:17px Arial;fill:#b9d0c6}.h{font:800 42px Arial;fill:#fff}.a{stroke:#d2ae5b;stroke-width:3;marker-end:url(#m)}.secure{fill:#173b31;stroke:#d2ae5b;stroke-width:2}</style>
+<defs><marker id="m" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" class="gold"/></marker></defs>
+<rect width="1400" height="980" class="bg"/>
+<text x="70" y="70" class="h">QARAR AI V5.1</text><text x="70" y="105" class="s">Hardened Enterprise Decision Intelligence · Know. Decide. Act.</text>
+<rect x="90" y="150" width="1220" height="90" rx="18" class="box"/><text x="130" y="190" class="t">Experience &amp; Channels</text><text x="130" y="220" class="s">Executive · Project Manager · Developer · ChatGPT · Claude · Teams · Apps</text>
+<line x1="700" y1="240" x2="700" y2="285" class="a"/>
+<rect x="90" y="290" width="1220" height="105" rx="18" class="secure"/><text x="130" y="335" class="t">Access &amp; Identity</text><text x="130" y="367" class="s">Next BFF · Authenticated REST · Authenticated MCP · tenant_id · subject · roles</text>
+<line x1="700" y1="395" x2="700" y2="440" class="a"/>
+<rect x="90" y="445" width="1220" height="120" rx="18" class="box"/><text x="130" y="488" class="t">Qarar Core</text><text x="130" y="522" class="s">Planner → Evidence → Parallel Experts → Options → Deterministic Scoring → Critic → Chief Advisor → Human Gate</text>
+<line x1="700" y1="565" x2="700" y2="610" class="a"/>
+<rect x="90" y="615" width="380" height="145" rx="18" class="box"/><text x="125" y="660" class="t">Knowledge Fabric</text><text x="125" y="694" class="s">Object storage · chunks</text><text x="125" y="722" class="s">Hybrid RAG · trust · citations</text>
+<rect x="510" y="615" width="380" height="145" rx="18" class="box"/><text x="545" y="660" class="t">Qarar Connect</text><text x="545" y="694" class="s">MCP server · client/gateway</text><text x="545" y="722" class="s">M365 · GitHub · custom MCP</text>
+<rect x="930" y="615" width="380" height="145" rx="18" class="box"/><text x="965" y="660" class="t">Qarar Automate</text><text x="965" y="694" class="s">Dry-run · approval record</text><text x="965" y="722" class="s">n8n · webhooks · audit</text>
+<line x1="700" y1="760" x2="700" y2="805" class="a"/>
+<rect x="90" y="810" width="1220" height="100" rx="18" class="box"/><text x="130" y="852" class="t">Enterprise &amp; Authoritative Systems</text><text x="130" y="885" class="s">Teams · Outlook · SharePoint · GitHub · ERP · CRM · PMO · Cloud · Official regulators · Approved web</text>
+<text x="90" y="950" class="s">Invariant: tenant comes from identity; non-dry automation requires server-verified human approval.</text>
+</svg>

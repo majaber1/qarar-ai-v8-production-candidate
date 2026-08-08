@@ -1,0 +1,52 @@
+{
+  "id": "qarardec2act1",
+  "name": "Qarar Decision To Action (Pilot)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "decision_to_action",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-node",
+      "name": "Qarar Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [260, 300],
+      "webhookId": "decision-to-action-pilot"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.body.qarar_callback_url }}",
+        "method": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"tenant_id\": $json.body.case_id ? $json.body.tenant_id : $json.body.tenant_id, \"status\": \"executed\", \"detail\": { \"note\": \"pilot workflow created a simulated project task\", \"case_id\": $json.body.case_id } } }}",
+        "options": {}
+      },
+      "id": "callback-node",
+      "name": "Callback To Qarar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [520, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"status\": \"workflow_executed\", \"received_case_id\": $json.body.case_id } }}"
+      },
+      "id": "respond-node",
+      "name": "Respond To Qarar",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [780, 300]
+    }
+  ],
+  "connections": {
+    "Qarar Webhook": {"main": [[{"node": "Callback To Qarar", "type": "main", "index": 0}]]},
+    "Callback To Qarar": {"main": [[{"node": "Respond To Qarar", "type": "main", "index": 0}]]}
+  },
+  "active": true,
+  "settings": {}
+}

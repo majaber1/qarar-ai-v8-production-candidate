@@ -1,0 +1,32 @@
+QARAR AI V8 RELEASE MANIFEST
+Release: 8.0.0
+Date: 2026-08-08
+
+BASE
+- Functional base: Qarar AI Enterprise V6 upload
+- Security/frontend reference: partial V7 production candidate
+- Output: independent V8 source tree; neither input overwritten
+
+VERSIONS
+- API: 8.0.0
+- Web package: 8.0.0
+- Next.js: 16.3.0
+- Alembic head: a8c4e2f90111
+
+VERIFIED GATES
+- Python compile: PASS
+- Backend runnable subset: 45 passed, 2 dependency-gated deselections
+- V8 hardening/integration tests: 5 passed
+- Knowledge upload -> ingestion -> council evidence/citation: PASS
+- Alembic empty database upgrade/current/check: PASS
+- Frontend typecheck/build: PASS
+- npm production audit: PASS (0 vulnerabilities)
+- Compose YAML parse: PASS
+
+EXTERNAL RELEASE GATES
+- Full clean dependency install and all 50 backend tests
+- Docker Compose config/build in Docker-enabled target environment
+- PostgreSQL/pgvector staging migration and retrieval test
+- Real n8n signed callback lifecycle test
+
+See QA_QC_REPORT_V8.md for exact limitations.

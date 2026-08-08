@@ -1,0 +1,1 @@
+{"servers":[{"id":"local-qarar","name":"Local Qarar MCP (self)","url":"http://127.0.0.1:8011/mcp","enabled":true,"auth":{"type":"bearer","env":"LOCAL_QARAR_MCP_TOKEN"}}]}
