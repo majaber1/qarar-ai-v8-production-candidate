@@ -55,6 +55,22 @@ class ProjectCreate(BaseModel):
     objective: str = Field(min_length=10, max_length=4000)
     owner: str = Field(min_length=2, max_length=200)
 
+class ProfileUpdate(BaseModel):
+    full_name: str = Field(min_length=2, max_length=200)
+
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=12, max_length=200)
+
+
+def _principal_user(db: Session, principal: Principal) -> WorkspaceUser:
+    if principal.auth_type != 'session' or not principal.subject.startswith('user:'):
+        raise HTTPException(403, 'Profile management requires a password-authenticated user session')
+    user = db.get(WorkspaceUser, int(principal.subject.split(':', 1)[1]))
+    if not user or user.tenant_id != principal.tenant_id:
+        raise HTTPException(404, 'User not found')
+    return user
+
 
 @router.post('/auth/register', status_code=202)
 def register(req: RegisterRequest, db: Session = Depends(get_db)):
@@ -62,7 +78,8 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
     email = str(req.email).strip().lower()
     tenant_id = req.workspace_code.strip().lower()
     if db.scalar(select(WorkspaceUser).where(WorkspaceUser.tenant_id == tenant_id, WorkspaceUser.email == email)):
-        raise HTTPException(409, 'An account request already exists for this email')
+        # Do not disclose whether an email already belongs to a workspace.
+        return {'status': 'pending', 'message': 'If eligible, the account request will be reviewed by an administrator'}
     user = WorkspaceUser(tenant_id=tenant_id, email=email, full_name=req.full_name.strip(),
                          organization=req.organization.strip(), password_hash=_password_hash(req.password),
                          role=role, active=False)
@@ -98,6 +115,32 @@ def logout(req: LogoutRequest, db: Session = Depends(get_db)):
     if session:
         session.revoked = True; db.commit()
     return {'status': 'ok'}
+
+
+@router.get('/profile')
+def profile(db: Session = Depends(get_db), principal: Principal = Depends(require_principal)):
+    user = _principal_user(db, principal)
+    return {'id': user.id, 'tenant_id': user.tenant_id, 'email': user.email, 'full_name': user.full_name,
+            'organization': user.organization, 'role': user.role, 'active': user.active}
+
+
+@router.patch('/profile')
+def update_profile(req: ProfileUpdate, db: Session = Depends(get_db), principal: Principal = Depends(require_principal)):
+    user = _principal_user(db, principal); user.full_name = req.full_name.strip(); db.commit(); db.refresh(user)
+    record_audit(user.tenant_id, user.email, 'profile_updated', auth_type='session', resource_type='user', resource_id=user.id)
+    return {'id': user.id, 'email': user.email, 'full_name': user.full_name, 'organization': user.organization, 'role': user.role}
+
+
+@router.post('/profile/password')
+def change_password(req: PasswordChange, db: Session = Depends(get_db), principal: Principal = Depends(require_principal)):
+    user = _principal_user(db, principal)
+    if not _password_ok(req.current_password, user.password_hash): raise HTTPException(401, 'Current password is incorrect')
+    if hmac.compare_digest(req.current_password, req.new_password): raise HTTPException(422, 'New password must be different')
+    user.password_hash = _password_hash(req.new_password)
+    for session in db.scalars(select(UserSession).where(UserSession.user_id == user.id)).all(): session.revoked = True
+    db.commit()
+    record_audit(user.tenant_id, user.email, 'password_changed', auth_type='session', resource_type='user', resource_id=user.id)
+    return {'status': 'ok', 'sessions_revoked': True}
 
 
 @router.get('/access-requests')

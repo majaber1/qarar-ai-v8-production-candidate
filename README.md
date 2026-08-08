@@ -1,4 +1,6 @@
-# Qarar AI V8 — Enterprise Decision Intelligence
+# قرار | Qarar — Decision Intelligence Platform
+
+**Version 8.1.0-beta.1 — قرارات أوضح. بثقة أكبر. / Decide Better.**
 
 Evidence → Decision → Human Approval → Action, with tenant isolation and an auditable trail.
 
@@ -70,5 +72,7 @@ npm audit --omit=dev
 ```
 
 See `V8_COMPARISON_REPORT.md` and `QA_QC_REPORT_V8.md` for merge decisions, evidence, and known verification limits.
+
+Current audit and verified baseline: `docs/QARAR_FULL_AUDIT.md` and `docs/BASELINE_TEST_RESULTS.md`. This release is a beta; the public frontend requires a separately hosted FastAPI backend, PostgreSQL, and durable object storage for full functionality.
 
 Proprietary — Qarar AI Enterprise Platform.

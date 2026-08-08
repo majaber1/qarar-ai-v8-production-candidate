@@ -23,8 +23,27 @@ def test_registration_requires_approval_then_password_login_works():
     whoami = client.get('/api/whoami', headers={'X-Qarar-API-Key': token})
     assert whoami.status_code == 200
     assert whoami.json()['roles'] == ['project_manager']
+    profile = client.patch('/api/profile', headers={'X-Qarar-API-Key': token}, json={'full_name': 'Updated Operator'})
+    assert profile.status_code == 200
+    assert profile.json()['full_name'] == 'Updated Operator'
+    changed = client.post('/api/profile/password', headers={'X-Qarar-API-Key': token}, json={
+        'current_password': 'a-strong-password-123', 'new_password': 'a-new-strong-password-456'})
+    assert changed.status_code == 200
+    assert client.get('/api/whoami', headers={'X-Qarar-API-Key': token}).status_code == 401
+    replacement = client.post('/api/auth/login', json={
+        'email': 'operator@example.com', 'workspace_code': 'tenant-a', 'password': 'a-new-strong-password-456'})
+    assert replacement.status_code == 200
+    token = replacement.json()['token']
     assert client.post('/api/auth/logout', json={'token': token}).status_code == 200
     assert client.get('/api/whoami', headers={'X-Qarar-API-Key': token}).status_code == 401
+
+
+def test_duplicate_registration_does_not_disclose_account_existence():
+    response = client.post('/api/auth/register', json={
+        'full_name': 'Someone Else', 'email': 'operator@example.com', 'organization': 'Tenant A',
+        'workspace_code': 'tenant-a', 'password': 'another-password-123', 'requested_role': 'executive'})
+    assert response.status_code == 202
+    assert 'eligible' in response.json()['message']
 
 
 def test_project_case_and_file_are_tenant_scoped_and_linked():
