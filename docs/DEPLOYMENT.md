@@ -24,6 +24,14 @@ docker compose --profile security up -d
 docker compose --profile automation --profile security --profile platform up -d
 ```
 
+## Vercel FastAPI service
+
+The `backend` directory is independently deployable as a Vercel Python project. Keep it as a separate project from the linked `frontend` project so the existing Next.js build and domain are not replaced.
+
+Required production variables are `ENVIRONMENT=production`, a pooled PostgreSQL `DATABASE_URL`, a non-development `QARAR_API_KEYS_JSON` or production OIDC configuration, and the canonical frontend origin in `CORS_ORIGINS`. Run `python -m alembic upgrade head` against the production database before directing frontend traffic to the service.
+
+After the backend deployment is ready, set the frontend project’s server-only `QARAR_BACKEND_URL` to `https://<backend-domain>/api` for Production and Preview, then redeploy the frontend. Never use SQLite or local object storage for production writes on Vercel because function filesystems are ephemeral.
+
 ## Environment Variables
 
 ### Backend (`backend/.env`)
