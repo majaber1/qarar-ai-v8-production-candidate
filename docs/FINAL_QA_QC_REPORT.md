@@ -22,7 +22,7 @@ No mock success response, fake production metric, disabled validation, or expose
 | Operations navigation | Clear role-appropriate routes and mobile navigation | Shared header with active route, menu, skip link, quick actions | Route inventory and component review | Pass | `AppHeader.tsx`; no unresolved literal route target found |
 | Arabic and English | Functional parity with natural copy | Central language provider and bilingual content | Browser preview review and source inspection | Pass | Arabic/English dashboard and footer verified; localized status and urgency labels |
 | RTL and LTR | Correct document direction and technical-value isolation | Runtime `lang`/`dir` switching; LTR islands | DOM/source review | Pass | `LanguageProvider`; IDs, money, tokens, and duration use LTR where required |
-| Responsive layout | No clipped or unusable dashboard at mobile, tablet, desktop | Breakpoints at 1050, 900, 800, 760, 560, and 520 px | CSS inspection and signed-in desktop preview | Partial | Exact 375/768/1440 screenshot automation was blocked by Vercel Authentication; standalone browser received the Vercel login page |
+| Responsive layout | No clipped or unusable dashboard at mobile, tablet, desktop | Breakpoints at 1050, 900, 800, 760, 560, and 520 px | Browser screenshots at 375, 768, and 1440 px plus overflow measurement | Pass | Production layout fits each viewport; mobile menu and language control verified with device emulation |
 | Accessibility and motion | Keyboard landmarks, labels, states, reduced motion | Skip link, navigation labels, focus treatment, semantic progress/status, reduced-motion rule | Source review and build | Pass | `prefers-reduced-motion`, `aria-current`, `aria-pressed`, progressbar semantics |
 | Authentication and authorization | Login/register/session and tenant/role boundaries enforced server-side | Session BFF plus backend role/tenant enforcement | Backend automated tests | Pass | GitHub backend job: 59 tests passed |
 | Decision lifecycle | Create, analyze, clarify, recommend, approve, publish | Backend routes/services and bilingual UI flows present | Backend integration tests, route inventory, build | Pass in CI | Live hosted workflow remains blocked by missing production backend |
@@ -63,6 +63,7 @@ The three local setup errors are not application test failures: the same MCP gat
 ## Issues fixed during final inspection
 
 - Removed Markdown trailing whitespace detected by `git diff --check`.
+- Restored the language switch inside the tablet/mobile navigation menu by removing a stale CSS rule that hid it below 800 px.
 - Revalidated all GitHub gates on the release candidate.
 - Confirmed dashboard offline behavior does not fabricate live portfolio data.
 
@@ -72,7 +73,7 @@ No security or data-integrity workaround was used.
 
 1. A public backend and its database/object-storage/provider configuration are not deployed. Set the server-only `QARAR_BACKEND_URL` after provisioning that service; do not use a `NEXT_PUBLIC_` secret.
 2. Password recovery is not implemented because the required secure backend and email contract does not exist.
-3. Vercel Deployment Protection prevented unauthenticated exact-width screenshot automation and the Vercel connector returned 403 for runtime-error queries. The signed-in preview and CI deployment were still available for direct verification. This limitation must not be interpreted as proof of untested backend workflows.
+3. The Vercel connector returned 403 for runtime-error queries. Production route responses, browser console behavior, deployment records, and the health endpoint were verified independently. This limitation must not be interpreted as proof of untested backend workflows.
 
 ## Source and deployment provenance
 
