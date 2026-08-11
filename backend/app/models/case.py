@@ -27,5 +27,6 @@ class DecisionCase(Base):
     due_date:Mapped[date|None]=mapped_column(Date,nullable=True)
     pending_clarifications:Mapped[list[str]|None]=mapped_column(JSON,nullable=True)
     clarification_answers:Mapped[dict[str,Any]|None]=mapped_column(JSON,nullable=True)
+    scoring_weights:Mapped[dict[str,float]|None]=mapped_column(JSON,nullable=True)
     created_at:Mapped[datetime]=mapped_column(DateTime,default=lambda: datetime.now(timezone.utc))
     updated_at:Mapped[datetime]=mapped_column(DateTime,default=lambda: datetime.now(timezone.utc),onupdate=lambda: datetime.now(timezone.utc))

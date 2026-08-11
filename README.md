@@ -1,6 +1,6 @@
 # قرار | Qarar — Decision Intelligence Platform
 
-**Version 8.1.0-beta.1 — قرارات أوضح. بثقة أكبر. / Decide Better.**
+**Version 8.2.0-beta.1 — قرارات أوضح. بثقة أكبر. / Decide Better.**
 
 Evidence → Decision → Human Approval → Action, with tenant isolation and an auditable trail.
 
