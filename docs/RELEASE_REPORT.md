@@ -63,7 +63,10 @@ Then open `http://localhost:3000`, switch languages from the header, and verify 
 
 The frontend is Vercel-compatible with `frontend` as the project root. Full product readiness requires a public backend and the server-only `QARAR_BACKEND_URL`. Never expose backend API keys through `NEXT_PUBLIC_*` variables.
 
-Feature branch: `feat/bilingual-ux-production-hardening`  
-Pull request: `https://github.com/majaber1/qarar-ai-v8-production-candidate/pull/2`  
-Vercel preview: `https://qarar-ai-v8-production-candidate-5365ygyp2-20262031.vercel.app`  
+Feature branch: `feat/bilingual-ux-production-hardening`
+
+Pull request: `https://github.com/majaber1/qarar-ai-v8-production-candidate/pull/2`
+
+Vercel preview: `https://qarar-ai-v8-production-candidate-5365ygyp2-20262031.vercel.app`
+
 CI: backend, frontend, and Compose jobs passed. The branch remains a draft until review/merge.

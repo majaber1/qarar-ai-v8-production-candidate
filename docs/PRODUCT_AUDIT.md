@@ -1,7 +1,9 @@
 # Qarar Product Audit
 
-Date: 2026-08-11  
-Branch: `feat/bilingual-ux-production-hardening`  
+Date: 2026-08-11
+
+Branch: `feat/bilingual-ux-production-hardening`
+
 Baseline: `c6251b2`
 
 ## Product and architecture
