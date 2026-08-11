@@ -14,7 +14,7 @@ Primary roles are executives/approvers, project managers/operators, and develope
 
 - Git worktree was clean on `main`; remote was `origin`, GitHub repository `majaber1/qarar-ai-v8-production-candidate`.
 - Backend: 59 tests passed in 23.78 seconds. Windows emitted a non-failing pytest temporary-directory cleanup warning after completion.
-- Frontend dependency reinstall: blocked locally because a stale Next development server first locked the native SWC binary; after stopping only those repository processes, npm could not finish cache/network restoration within 180 seconds. The last verified production build on `main` generated 22 routes and GitHub CI passed at `ad540c2`; the feature branch must pass GitHub CI before merge.
+- Frontend dependency reinstall: blocked locally because a stale Next development server first locked the native SWC binary; after stopping only those repository processes, npm could not finish cache/network restoration within 180 seconds. Independent GitHub Actions verification on this feature branch passed dependency installation, type-check, production build, and production dependency audit.
 - Hosted frontend: reachable on Vercel. Its transparent connection state reports that no public backend is configured.
 
 ## Module matrix
@@ -38,4 +38,3 @@ Primary roles are executives/approvers, project managers/operators, and develope
 2. Set Vercel `QARAR_BACKEND_URL` to the public backend URL including `/api`.
 3. Configure real AI, email, OIDC, MCP, automation, and malware-scanning credentials only for the integrations being enabled.
 4. Validate password recovery only after a recovery contract and transactional email provider are deliberately added.
-

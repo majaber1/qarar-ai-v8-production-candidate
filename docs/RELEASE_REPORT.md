@@ -27,10 +27,10 @@ This release preserves Qarar's decision lifecycle and backend contracts while co
 | Backend compilation/tests | PASS — 59 tests |
 | Backend cleanup | Non-failing Windows pytest temp-directory warning |
 | Frontend dependency restoration | LOCAL ENVIRONMENT BLOCKED — npm restore exceeded 180 seconds after a stale dev-server lock was removed |
-| Frontend type-check/build | Must be confirmed by GitHub CI before merge; previous `main` release passed and generated 22 routes |
+| Frontend type-check/build/audit | PASS — GitHub Actions frontend job, 26 seconds |
 | Diff whitespace check | PASS |
 | Secrets review | No credentials or environment files added |
-| Hosted visual matrix | Pending feature-branch preview deployment |
+| Hosted visual verification | PASS — Arabic and English dashboard content, navigation, offline state, and localized footer on Vercel preview |
 
 ## Before/after score
 
@@ -63,5 +63,7 @@ Then open `http://localhost:3000`, switch languages from the header, and verify 
 
 The frontend is Vercel-compatible with `frontend` as the project root. Full product readiness requires a public backend and the server-only `QARAR_BACKEND_URL`. Never expose backend API keys through `NEXT_PUBLIC_*` variables.
 
-Final commit SHA, GitHub PR, CI results, and preview verification are added during release publication.
-
+Feature branch: `feat/bilingual-ux-production-hardening`  
+Pull request: `https://github.com/majaber1/qarar-ai-v8-production-candidate/pull/2`  
+Vercel preview: `https://qarar-ai-v8-production-candidate-5365ygyp2-20262031.vercel.app`  
+CI: backend, frontend, and Compose jobs passed. The branch remains a draft until review/merge.
