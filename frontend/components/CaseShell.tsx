@@ -14,12 +14,12 @@ export function useCase(id:string){
 }
 
 export function Header({x,busy,analyze}:{x:QCase,busy:boolean,analyze:()=>void}){
-  const{t}=useLang();
+  const{t,status,urgency}=useLang();
   return <section className="hero caseHero">
     <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
-      <span className="badge gold">{x.urgency}</span>
-      <span className="badge">{x.status}</span>
-      {x.approved_option&&<span className="badge gold">Option {x.approved_option}</span>}
+      <span className="badge gold">{urgency(x.urgency)}</span>
+      <span className="badge">{status(x.status)}</span>
+      {x.approved_option&&<span className="badge gold">{t('الخيار','Option')} {x.approved_option}</span>}
     </div>
     <h1>{x.title}</h1><p>{x.description}</p>
     <div className="runActions">
@@ -37,7 +37,7 @@ export function ClarificationGate({x,busy,clarify}:{x:QCase,busy:boolean,clarify
   if(x.status!=='needs_clarification'||!x.pending_clarifications?.length) return null;
   return <section className="clarificationGate">
     <div className="clarificationHeader">
-      <span className="kicker">CLARIFICATION REQUIRED</span>
+      <span className="kicker">{t('مطلوب استيضاح','Clarification required')}</span>
       <h2>{t('Qarar يحتاج إجابتك قبل المتابعة','Qarar needs your input before proceeding')}</h2>
       <p className="muted">{t('الأسئلة أدناه لم نتمكن من استنتاجها تلقائيًا من المعرفة المتاحة.','The questions below could not be auto-resolved from available knowledge.')}</p>
     </div>
@@ -61,7 +61,7 @@ export function ApprovalPanel({x,busy,approve}:{x:QCase,busy:boolean,approve:(oi
   const options=x.analysis?.options||[];
   if(x.status!=='recommendation_ready'||!options.length||x.approved_option) return null;
   return <section className="approvalPanel">
-    <span className="kicker">EXECUTIVE APPROVAL</span>
+    <span className="kicker">{t('الاعتماد التنفيذي','Executive approval')}</span>
     <h2>{t('اعتمد القرار','Approve decision')}</h2>
     <div className="g2" style={{gap:14}}>
       <div className="field"><label>{t('الخيار المعتمد','Approved option')}</label>
@@ -71,7 +71,7 @@ export function ApprovalPanel({x,busy,approve}:{x:QCase,busy:boolean,approve:(oi
         </select>
       </div>
       <div className="field"><label>{t('مسؤول التنفيذ','Decision owner')}</label>
-        <input value={owner} onChange={e=>setOwner(e.target.value)} placeholder="e.g. Ahmed Al-Rashid"/>
+        <input value={owner} onChange={e=>setOwner(e.target.value)} placeholder={t('مثال: أحمد الراشد','e.g. Ahmed Al-Rashid')}/>
       </div>
       <div className="field"><label>{t('الموعد النهائي','Due date')}</label>
         <input type="date" value={due} onChange={e=>setDue(e.target.value)}/>

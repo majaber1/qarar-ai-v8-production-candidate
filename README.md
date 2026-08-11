@@ -75,4 +75,13 @@ See `V8_COMPARISON_REPORT.md` and `QA_QC_REPORT_V8.md` for merge decisions, evid
 
 Current audit and verified baseline: `docs/QARAR_FULL_AUDIT.md` and `docs/BASELINE_TEST_RESULTS.md`. This release is a beta; the public frontend requires a separately hosted FastAPI backend, PostgreSQL, and durable object storage for full functionality.
 
+## Arabic, English, and RTL
+
+The language switcher persists the user's preference locally and applies `lang` plus `dir` to the document. Shared status and urgency labels are localized centrally. UI layout uses logical start/end behavior where direction matters; URLs, IDs, model names, code, and financial values remain readable as LTR islands. When adding copy, provide natural Arabic and English through the shared `useLang()` helpers and test both directions at mobile, tablet, and desktop widths.
+
+## Product audit and release evidence
+
+- `docs/PRODUCT_AUDIT.md` — current module matrix, root causes, resolutions, and external blockers.
+- `docs/RELEASE_REPORT.md` — bilingual UX changes, verification results, known limitations, and deployment readiness.
+
 Proprietary — Qarar AI Enterprise Platform.

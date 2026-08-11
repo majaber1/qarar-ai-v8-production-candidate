@@ -8,7 +8,7 @@ import {useLang} from './LanguageProvider';
 type LoadState='loading'|'ready'|'error';
 
 export default function CaseList({base,initialCases,externalState}:{base:string;initialCases?:QCase[];externalState?:LoadState}){
-  const{t}=useLang();
+  const{t,status:statusLabel,urgency:urgencyLabel,locale}=useLang();
   const[cases,setCases]=useState<QCase[]>(initialCases||[]);
   const[state,setState]=useState<LoadState>(externalState||'loading');
   const[query,setQuery]=useState('');
@@ -33,6 +33,6 @@ export default function CaseList({base,initialCases,externalState}:{base:string;
     {state==='error'&&<div className="inlineError"><b>{t('تعذر تحميل الحالات','Cases could not be loaded')}</b><span>{t('سجّل الدخول أو تأكد من اتصال خدمة قرار.','Sign in or check the Qarar service connection.')}</span><Link href="/login">{t('تسجيل الدخول','Sign in')} ←</Link></div>}
     {state==='ready'&&cases.length===0&&<div className="emptyCase"><b>{t('لا توجد حالات قرار بعد','No decision cases yet')}</b><span>{t('أنشئ أول حالة لتبدأ رحلة التحليل والاعتماد.','Create the first case to begin the analysis and approval journey.')}</span><Link href="/cases/new">＋ {t('حالة جديدة','New case')}</Link></div>}
     {state==='ready'&&cases.length>0&&filtered.length===0&&<div className="tableMessage"><b>{t('لا توجد نتائج مطابقة','No matching decisions')}</b><span>{t('جرّب عبارة بحث أو حالة مختلفة.','Try a different search or status.')}</span></div>}
-    {filtered.length>0&&<div className="caseRows"><div className="caseTableHead"><span>{t('القرار','Decision')}</span><span>{t('الأولوية','Priority')}</span><span>{t('الحالة','Status')}</span><span>{t('آخر تحديث','Updated')}</span><span/></div>{filtered.map(item=><Link href={`${base}/${item.id}`} className="caseTableRow" key={item.id}><div><b>{item.title}</b><small>{item.description.replace(/^\[[^\]]+\]\s*/, '').slice(0,92)}</small></div><span className={`priorityBadge ${item.urgency}`}>{item.urgency}</span><span className="statusBadge">{item.status.replaceAll('_',' ')}</span><time>{new Intl.DateTimeFormat(undefined,{month:'short',day:'numeric'}).format(new Date(item.updated_at||item.created_at))}</time><i>←</i></Link>)}</div>}
+    {filtered.length>0&&<div className="caseRows"><div className="caseTableHead"><span>{t('القرار','Decision')}</span><span>{t('الأولوية','Priority')}</span><span>{t('الحالة','Status')}</span><span>{t('آخر تحديث','Updated')}</span><span/></div>{filtered.map(item=><Link href={`${base}/${item.id}`} className="caseTableRow" key={item.id}><div><b>{item.title}</b><small>{item.description.replace(/^\[[^\]]+\]\s*/, '').slice(0,92)}</small></div><span className={`priorityBadge ${item.urgency}`}>{urgencyLabel(item.urgency)}</span><span className="statusBadge">{statusLabel(item.status)}</span><time dateTime={item.updated_at||item.created_at}>{new Intl.DateTimeFormat(locale,{month:'short',day:'numeric'}).format(new Date(item.updated_at||item.created_at))}</time><i className="directionalIcon">←</i></Link>)}</div>}
   </div>
 }
