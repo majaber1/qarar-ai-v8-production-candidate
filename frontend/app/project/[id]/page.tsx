@@ -14,7 +14,7 @@ export default function ProjectCaseView(){
     <Header x={x} busy={busy} analyze={analyze}/>
     <ClarificationGate x={x} busy={busy} clarify={clarify}/>
     {x.clarification_answers&&Object.keys(x.clarification_answers).length>0&&<section className="card clarificationDone">
-      <span className="kicker">CLARIFICATIONS PROVIDED</span>
+      <span className="kicker">{t('الاستيضاحات المقدمة','Clarifications provided')}</span>
       {Object.entries(x.clarification_answers).map(([q,a],i)=><div key={i} className="clarAnswerItem">
         <b>{q}</b><p>{a}</p>
       </div>)}
@@ -25,15 +25,15 @@ export default function ProjectCaseView(){
       <div className="card"><span>{t('المعلومات الناقصة','Missing inputs')}</span><div className="metric">{a.unknowns?.length||0}</div></div>
       <div className="card"><span>{t('التكلفة التقديرية','Estimated AI cost')}</span><div className="metric">${Number(a.run_metrics?.estimated_cost_usd||0).toFixed(3)}</div></div>
     </div>
-    <div className="sectionHead"><div><span className="kicker">EVIDENCE GAPS</span><h2>{t('ما الذي ما زلنا نحتاج معرفته؟','What do we still need to know?')}</h2></div></div>
+    <div className="sectionHead"><div><span className="kicker">{t('فجوات الأدلة','Evidence gaps')}</span><h2>{t('ما الذي ما زلنا نحتاج معرفته؟','What do we still need to know?')}</h2></div></div>
     <div className="card"><List items={a.unknowns}/></div>
-    <div className="sectionHead"><div><span className="kicker">SPECIALISTS</span><h2>{t('الخبراء الذين احتاجتهم هذه القضية','Specialists this case actually needed')}</h2></div></div>
+    <div className="sectionHead"><div><span className="kicker">{t('المختصون','Specialists')}</span><h2>{t('الخبراء الذين احتاجتهم هذه القضية','Specialists this case actually needed')}</h2></div></div>
     <div className="grid g3">{experts.map(([name,r]:[string,any])=><div className="card expert" key={name}>
       <div className="expert-top"><h3>{r.headline||name}</h3><span className="badge gold">{Math.round((r.confidence||0)*100)}%</span></div>
       <p>{r.summary}</p>
       <span className="badge">{r.status}</span><span className="badge">{r.metadata?.analysis_source||'—'}</span>
     </div>)}</div>
-    <div className="sectionHead"><div><span className="kicker">OPTIONS</span><h2>{t('البدائل والمفاضلة','Options & trade-offs')}</h2></div></div>
+    <div className="sectionHead"><div><span className="kicker">{t('الخيارات','Options')}</span><h2>{t('البدائل والمفاضلة','Options & trade-offs')}</h2></div></div>
     <div className="grid g3">{(a.options||[]).map((o:any)=><div className="card option" key={o.id}>
       <span className="badge gold">{o.id}</span><h3>{o.title}</h3><div className="score">{o.weighted_score}/100</div>
       <p>{o.description}</p><h4>{t('الفوائد','Benefits')}</h4><List items={o.benefits}/><h4>{t('المخاطر','Risks')}</h4><List items={o.risks}/>

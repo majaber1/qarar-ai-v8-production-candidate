@@ -15,7 +15,7 @@ export default function View(){
   return <main className="executiveCase"><div className="container">
     <Header x={x} busy={busy} analyze={analyze}/>
     {e&&<><section className="execDecision">
-      <span className="kicker light">EXECUTIVE BRIEF</span>
+      <span className="kicker light">{t('الموجز التنفيذي','Executive brief')}</span>
       <h1>{e.decision}</h1>
       <div className="execDecisionMetrics">
         <div><b>{Math.round((e.confidence||0)*100)}%</b><span>{t('الثقة','Confidence')}</span></div>
@@ -25,8 +25,8 @@ export default function View(){
     </section>
     <ApprovalPanel x={x} busy={busy} approve={approve}/>
     {x.approved_option&&<section className="approvedBanner">
-      <span className="kicker light">APPROVED</span>
-      <h2>{t('القرار معتمد','Decision approved')}: Option {x.approved_option}</h2>
+      <span className="kicker light">{t('معتمد','Approved')}</span>
+      <h2>{t('القرار معتمد','Decision approved')}: {t('الخيار','Option')} {x.approved_option}</h2>
       <p>{t('مسؤول التنفيذ','Decision owner')}: <b>{x.decision_owner}</b>{x.due_date&&<> &middot; {t('الموعد','Due')}: {x.due_date}</>}</p>
       <Link className="btn gold" href="/automate">{t('تنفيذ الإجراءات','Execute actions')}</Link>
     </section>}

@@ -11,7 +11,7 @@ type LoadState='loading'|'ready'|'error';
 const CLOSED_STATUSES=new Set(['approved','executed','archived','rejected']);
 
 export default function OperatorDashboard(){
-  const{t}=useLang();
+  const{t,status:statusLabel}=useLang();
   const[projects,setProjects]=useState<QProject[]>([]);
   const[cases,setCases]=useState<QCase[]>([]);
   const[state,setState]=useState<LoadState>('loading');
@@ -97,7 +97,7 @@ export default function OperatorDashboard(){
           const related=cases.filter(item=>item.project_id===project.id);
           const completed=related.filter(item=>CLOSED_STATUSES.has(item.status)).length;
           const progress=related.length?Math.round(completed/related.length*100):0;
-          return <Link href={`/project?project=${project.id}`} className="portfolioCard" key={project.id}><div className="portfolioTop"><span>Q{project.id}</span><i>{project.status}</i></div><h3>{project.name}</h3><p>{project.objective}</p><div className="portfolioMeta"><span>{project.owner}</span><b>{related.length} {t('حالة','cases')}</b></div><div className="portfolioProgress"><i style={{width:`${progress}%`}}/></div></Link>
+          return <Link href={`/project?project=${project.id}`} className="portfolioCard" key={project.id}><div className="portfolioTop"><span dir="ltr">Q{project.id}</span><i>{statusLabel(project.status)}</i></div><h3>{project.name}</h3><p>{project.objective}</p><div className="portfolioMeta"><span>{project.owner}</span><b>{related.length} {t('حالة','cases')}</b></div><div className="portfolioProgress" role="progressbar" aria-label={t('تقدم المشروع','Project progress')} aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}><i style={{width:`${progress}%`}}/></div></Link>
         }):<div className="portfolioEmpty"><span>◎</span><div><b>{t('محفظتك جاهزة لأول مشروع','Your portfolio is ready for its first project')}</b><p>{t('ابدأ بهدف واضح، ثم اربط به الأدلة وحالات القرار.','Start with a clear objective, then connect evidence and decision cases.')}</p></div><Link className="btn primary" href="/projects/new">＋ {t('إنشاء مشروع','Create project')}</Link></div>}</div>
       </section>
     </section>
