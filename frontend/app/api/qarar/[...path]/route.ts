@@ -28,7 +28,17 @@ async function proxy(req:Request,ctx:{params:Promise<{path:string[]}>}){
     init.body=req.body;
     init.duplex='half';
   }
-  const upstream=await fetch(target,init);
+  let upstream:Response;
+  try{
+    upstream=await fetch(target,init);
+  }catch(error){
+    console.error('[qarar-proxy] backend unavailable',{path:target.pathname,error:error instanceof Error?error.message:String(error)});
+    return Response.json({
+      detail:'Qarar backend is unavailable',
+      code:'BACKEND_UNAVAILABLE',
+      retryable:true,
+    },{status:503,headers:{'Cache-Control':'no-store','Retry-After':'30'}});
+  }
   const outHeaders=new Headers();
   for(const name of ['content-type','cache-control','x-accel-buffering']){
     const value=upstream.headers.get(name); if(value)outHeaders.set(name,value);

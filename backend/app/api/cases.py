@@ -14,12 +14,13 @@ from app.models.case import DecisionCase
 from app.models.fabric import KnowledgeSource
 from app.models.security import DecisionApproval
 from app.models.workspace import Project
-from app.schemas.case import CaseCreate, CaseResponse, ApprovalRequest
+from app.schemas.case import CaseCreate, CaseResponse, CaseTransitionRequest, CaseUpdate, ApprovalRequest
 from app.services.advisor import analyze_case
 from app.services.clarification import classify_missing_information
 from app.services.contracts import CaseInput
 from app.services.fabric import ingest_source
 from app.services.orchestrator import orchestrator
+from app.services.tools.scoring import normalize_weights
 
 class ClarificationAnswers(BaseModel):
     answers: dict[str, str]
@@ -35,7 +36,13 @@ def _case_for_tenant(db: Session, case_id: int, tenant_id: str) -> DecisionCase 
 def create_case(p: CaseCreate, db: Session = Depends(get_db), principal: Principal = Depends(require_principal)):
     if p.project_id is not None and not db.scalar(select(Project).where(Project.id == p.project_id, Project.tenant_id == principal.tenant_id)):
         raise HTTPException(404, 'Project not found')
-    x = DecisionCase(tenant_id=principal.tenant_id, created_by=principal.subject, **p.model_dump())
+    values = p.model_dump()
+    if values.get('scoring_weights') is not None:
+        try:
+            values['scoring_weights'] = normalize_weights(values['scoring_weights'])
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+    x = DecisionCase(tenant_id=principal.tenant_id, created_by=principal.subject, **values)
     db.add(x); db.commit(); db.refresh(x)
     record_audit(principal.tenant_id, principal.subject, 'case_created', auth_type=principal.auth_type,
                  resource_type='case', resource_id=x.id, metadata={'title': x.title, 'project_id': x.project_id})
@@ -56,6 +63,64 @@ def get_case(case_id: int, db: Session = Depends(get_db), principal: Principal =
     return x
 
 
+@router.patch('/{case_id}', response_model=CaseResponse)
+def update_case(case_id: int, payload: CaseUpdate, db: Session = Depends(get_db),
+                principal: Principal = Depends(require_roles('project_manager', 'developer'))):
+    case = _case_for_tenant(db, case_id, principal.tenant_id)
+    if not case:
+        raise HTTPException(404, 'Case not found')
+    if case.status in {'approved', 'archived'}:
+        raise HTTPException(409, 'Approved or archived cases must be reopened before editing')
+    values = payload.model_dump(exclude_unset=True)
+    if 'project_id' in values and values['project_id'] is not None and not db.scalar(
+        select(Project).where(Project.id == values['project_id'], Project.tenant_id == principal.tenant_id)
+    ):
+        raise HTTPException(404, 'Project not found')
+    if values.get('scoring_weights') is not None:
+        try:
+            values['scoring_weights'] = normalize_weights(values['scoring_weights'])
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+    for field, value in values.items():
+        setattr(case, field, value)
+    db.commit(); db.refresh(case)
+    record_audit(principal.tenant_id, principal.subject, 'case_updated', auth_type=principal.auth_type,
+                 resource_type='case', resource_id=case.id, metadata={'fields': sorted(values)})
+    return case
+
+
+@router.post('/{case_id}/transition', response_model=CaseResponse)
+def transition_case(case_id: int, payload: CaseTransitionRequest, db: Session = Depends(get_db),
+                    principal: Principal = Depends(require_roles('project_manager', 'developer', 'executive'))):
+    case = _case_for_tenant(db, case_id, principal.tenant_id)
+    if not case:
+        raise HTTPException(404, 'Case not found')
+    if payload.status == 'rejected' and 'executive' not in principal.roles:
+        raise HTTPException(403, 'Only an executive can reject a recommendation')
+    allowed = {
+        'open': {'archived', 'deferred'},
+        'needs_clarification': {'archived', 'deferred'},
+        'recommendation_ready': {'archived', 'deferred', 'rejected'},
+        'approved': {'archived', 'open'},
+        'rejected': {'archived', 'open'},
+        'deferred': {'archived', 'open'},
+        'archived': {'open'},
+    }
+    if payload.status not in allowed.get(case.status, set()):
+        raise HTTPException(409, f'Cannot transition case from {case.status} to {payload.status}')
+    previous = case.status
+    case.status = payload.status
+    if payload.status == 'open':
+        case.approved_option = None
+        case.decision_owner = None
+        case.due_date = None
+    db.commit(); db.refresh(case)
+    record_audit(principal.tenant_id, principal.subject, 'case_status_changed', auth_type=principal.auth_type,
+                 resource_type='case', resource_id=case.id,
+                 metadata={'from': previous, 'to': payload.status, 'reason': payload.reason})
+    return case
+
+
 @router.post('/{case_id}/analyze', response_model=CaseResponse)
 def analyze(case_id: int, db: Session = Depends(get_db), principal: Principal = Depends(require_roles('project_manager','developer'))):
     x = _case_for_tenant(db, case_id, principal.tenant_id)
@@ -67,7 +132,7 @@ def analyze(case_id: int, db: Session = Depends(get_db), principal: Principal = 
     ok, reason = check_ai_rate_limit(principal.subject)
     if not ok:
         raise HTTPException(429, reason)
-    r = analyze_case(x.id, x.title, x.description, x.urgency, x.category, x.language, principal.tenant_id)
+    r = analyze_case(x.id, x.title, x.description, x.urgency, x.category, x.language, principal.tenant_id, x.scoring_weights)
     x.selected_agents=r['selected_agents']; x.skipped_agents=r['skipped_agents']; x.agent_results=r['agent_results']
     x.analysis=r['analysis']; x.audit_log=r['audit_log']; x.analysis_source=r['analysis_source']
 
@@ -133,7 +198,8 @@ def analyze_stream(case_id: int, principal: Principal = Depends(require_roles('p
         ok, reason = check_ai_rate_limit(principal.subject)
         if not ok:
             raise HTTPException(429, reason)
-        case = CaseInput(x.id, x.title, x.description, x.urgency, x.category, x.language, tenant_id)
+        case = CaseInput(x.id, x.title, x.description, x.urgency, x.category, x.language, tenant_id,
+                         scoring_weights=x.scoring_weights)
 
     events: queue.Queue = queue.Queue()
     done = object()

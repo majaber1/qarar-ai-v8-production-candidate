@@ -5,7 +5,7 @@ from app.services.contracts import CaseInput, ExecutionContext, AgentResult
 from app.services.registry import registry, SPECIALISTS
 from app.services.planner import build_plan
 from app.services.mock_engine import mock_result
-from app.services.tools.scoring import score_options
+from app.services.tools.scoring import compose_confidence, score_options
 from app.services.fabric import hybrid_search
 from app.core.ratelimit import record_usage
 
@@ -113,7 +113,7 @@ class Orchestrator:
         audit.append(self._event('options', options))
 
         self._emit(event_callback, 'agent_start', agent='scoring', display_name='محرك التقييم', stage='scoring', source='python')
-        scored = score_options(options.data.get('options', []))
+        scored = score_options(options.data.get('options', []), getattr(case, 'scoring_weights', None))
         scoring = AgentResult(
             'scoring', 'success', 'تقييم البدائل', 'تم حساب الدرجات داخل النظام.',
             data={'options': scored}, confidence=1,
@@ -135,6 +135,9 @@ class Orchestrator:
         evidence_data = evidence.data
         chief_data = chief.data
         critic_data = critic.data
+        deterministic_confidence, confidence_breakdown = compose_confidence(
+            {**evidence_data, 'sources': evidence.sources}, scored,
+        )
         any_ai = any(r.metadata.get('analysis_source') == 'openai' for r in ctx.results.values())
         total_cost = round(sum(float(x.get('estimated_cost_usd', 0) or 0) for x in audit), 6)
         total_tokens = sum(int(x.get('total_tokens', 0) or 0) for x in audit)
@@ -151,7 +154,8 @@ class Orchestrator:
                 'executive': {
                     'decision': chief_data.get('decision_label', chief.headline),
                     'recommended_option_id': chief_data.get('recommended_option_id', ''),
-                    'confidence': chief_data.get('confidence', chief.confidence),
+                    'confidence': deterministic_confidence,
+                    'confidence_breakdown': confidence_breakdown,
                     'why': chief_data.get('why', []),
                     'next_actions': chief_data.get('next_actions', []),
                     'top_risks': chief_data.get('top_risks', []),

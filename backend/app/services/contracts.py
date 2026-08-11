@@ -8,6 +8,6 @@ class AgentResult:
  def to_dict(self): return asdict(self)
 @dataclass
 class CaseInput:
- case_id:int|None; title:str; description:str; urgency:str; category:str|None=None; language:str='ar'; tenant_id:str='default'; evidence_context:list[dict[str,Any]]=field(default_factory=list)
+ case_id:int|None; title:str; description:str; urgency:str; category:str|None=None; language:str='ar'; tenant_id:str='default'; evidence_context:list[dict[str,Any]]=field(default_factory=list); scoring_weights:dict[str,float]|None=None
 @dataclass
 class ExecutionContext: case:CaseInput; results:dict[str,AgentResult]=field(default_factory=dict); response_language:str='ar'

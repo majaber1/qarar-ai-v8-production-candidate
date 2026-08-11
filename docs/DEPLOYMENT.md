@@ -1,4 +1,12 @@
-# Qarar AI V6 — Deployment Guide
+# Qarar AI V8 — Deployment Guide
+
+## Production topology
+
+The Vercel project hosts the Next.js frontend only. A complete production deployment also requires a separately hosted FastAPI service, PostgreSQL/pgvector, and S3-compatible durable object storage.
+
+Before promoting the frontend, configure the server-only `QARAR_BACKEND_URL` in Vercel for Production and Preview. It must include the backend `/api` suffix. The value is never exposed to the browser.
+
+Use `GET /api/deployment-health` on the frontend as the deployment probe. It returns `503` with `backend: not_configured`, `unreachable`, or `not_ready` until the backend and database are healthy.
 
 ## Docker Compose (recommended)
 
@@ -26,7 +34,7 @@ docker compose --profile automation --profile security --profile platform up -d
 | `QARAR_API_KEYS_JSON` | Yes | `{}` | JSON mapping API keys to tenant/roles |
 | `AUTH_REQUIRED` | No | `true` | Require authentication on all endpoints |
 | `AI_API_KEY` | No | | OpenAI/Anthropic API key for real AI |
-| `AI_PROVIDER` | No | `openai` | `openai` or `anthropic` |
+| `AI_PROVIDER` | No | `mock` | Currently `openai` or `mock` |
 | `OIDC_ENABLED` | No | `false` | Enable OIDC JWT validation |
 | `OIDC_ISSUER` | No | | OIDC issuer URL |
 | `OIDC_JWKS_URL` | No | | JWKS endpoint URL |
@@ -75,3 +83,8 @@ python scripts/seed_demo.py  # Creates 4 sample cases with evidence
 
 - `GET /api/health` — authenticated, full system status
 - `GET /api/readyz` — unauthenticated, database reachability probe
+- Frontend `GET /api/deployment-health` — verifies Vercel configuration and backend readiness
+
+## Required release gates
+
+The repository CI enforces backend tests and compilation, Alembic upgrade/check, frontend typecheck/build/audit, and Compose configuration validation. Production infrastructure still requires operator-supplied credentials; never commit them to the repository.
