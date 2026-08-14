@@ -17,6 +17,7 @@ from app.api.fabric import router as fabric_router
 from app.api.connect import router as connect_router
 from app.api.workspace import router as workspace_router
 from app.models.knowledge import KnowledgeItem
+from app.models.case import DecisionAction, DecisionCase, DecisionOutcome
 from app.models.fabric import KnowledgeSource, KnowledgeChunk, AutomationRun
 from app.models.security import DecisionApproval, AutomationCallbackReceipt
 from app.models.platform import AuditEvent, UsageRecord, CostBudget, MCPServerRegistration, ScanResult

@@ -10,13 +10,28 @@ V8 uses the richer V6 platform as its base and carries forward the security and 
 
 | Area | V8 behavior |
 |---|---|
-| Decision Council | Dynamic experts, scoring, critic and chief recommendation |
-| Knowledge Fabric | Tenant/case-scoped hybrid retrieval is injected into every council run with source metadata |
+| Decision Council | Dynamic experts, structured per-case criteria, deterministic scoring/confidence, sensitivity analysis, critic and chief recommendation |
+| Knowledge Fabric | Tenant/case-scoped hybrid retrieval, trust/review metadata, versioned replacement, and soft deletion |
 | Live analysis | Same budget, rate-limit, evidence, clarification and audit controls as normal analysis |
 | Automation | Approved-case gate, host allowlist, HMAC-SHA256 callback, timestamp and nonce replay protection |
 | Data | PostgreSQL/pgvector in production; Alembic is the production schema owner |
 | Access | API keys or OIDC, tenant isolation, role gates; MCP service key has no admin role |
-| UI | Executive, PM/operator and developer/admin experiences; Arabic/English and RTL/LTR |
+| Decision loop | Draft-to-archive lifecycle, executive approval, persisted owners/actions/dependencies, outcomes, lessons and follow-up summaries |
+| UI | Executive, PM/operator and developer/admin experiences; Arabic/English, RTL/LTR, desktop and mobile |
+
+## Explainable calculation model
+
+Each criterion is stored with a weight, scale, direction (`higher_better` or `lower_better`) and explicit missing-value policy. Raw scores are bounded to the configured scale and normalized to 0–100:
+
+`normalized = (bounded_raw - scale_min) / (scale_max - scale_min) × 100`
+
+For `lower_better`, Qarar uses `100 - normalized`. The option score is:
+
+`weighted_score = Σ(normalized_i × weight_i) / Σ(included_weight_i)`
+
+An `incomplete` missing criterion invalidates the score; `exclude` removes its weight from the denominator. Weight totals are normalized to 1. Ties are explicit when the first two scores differ by at most 0.01. Sensitivity recalculates both weights and criterion scores; a leader change or margin below 2 is highly sensitive, a margin below 8 is moderately sensitive, otherwise stable.
+
+Confidence is deterministic and excludes uncalibrated model self-confidence. It is the weighted sum of context completeness (15%), evidence coverage (12%), source quality (12%), scoring completeness (18%), option differentiation (10%), clarification resolution (10%), assumption control (8%), conflict control (7%), and sensitivity stability (8%). The API and UI retain the factor values, positive factors, uncertainties, and concrete improvement actions.
 
 ## Secure quick start
 
@@ -32,8 +47,10 @@ python -m uvicorn app.main:app --port 8000
 
 cd ../frontend
 npm ci
+npm run lint
 npm run typecheck
 npm run build
+npm run test:e2e
 npm run start
 ```
 
@@ -68,12 +85,13 @@ cd ../frontend
 npm ci
 npm run typecheck
 npm run build
-npm audit --omit=dev
+npm run test:e2e
+npm audit --omit=dev --audit-level=high
 ```
 
-See `V8_COMPARISON_REPORT.md` and `QA_QC_REPORT_V8.md` for merge decisions, evidence, and known verification limits.
+See `docs/ACCELERATOR_READINESS.md` and `docs/QA_QC_REPORT.md` for release evidence and known verification limits.
 
-Current audit and verified baseline: `docs/QARAR_FULL_AUDIT.md` and `docs/BASELINE_TEST_RESULTS.md`. This release is a beta; the public frontend requires a separately hosted FastAPI backend, PostgreSQL, and durable object storage for full functionality.
+Current audit and verified baseline: `docs/QARAR_FULL_AUDIT.md` and `docs/BASELINE_TEST_RESULTS.md`. The production data target is the existing Neon `neon-bronze-nest` project: database `qarar_production` is at Alembic revision `d83a1f0c9200` with pgvector enabled. The public frontend still requires a separately hosted FastAPI backend and durable S3-compatible object storage for full functionality.
 
 ## Arabic, English, and RTL
 

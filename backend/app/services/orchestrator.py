@@ -5,7 +5,7 @@ from app.services.contracts import CaseInput, ExecutionContext, AgentResult
 from app.services.registry import registry, SPECIALISTS
 from app.services.planner import build_plan
 from app.services.mock_engine import mock_result
-from app.services.tools.scoring import compose_confidence, score_options
+from app.services.tools.scoring import compose_confidence, normalize_criteria, score_options, sensitivity_analysis
 from app.services.fabric import hybrid_search
 from app.core.ratelimit import record_usage
 
@@ -113,10 +113,11 @@ class Orchestrator:
         audit.append(self._event('options', options))
 
         self._emit(event_callback, 'agent_start', agent='scoring', display_name='محرك التقييم', stage='scoring', source='python')
-        scored = score_options(options.data.get('options', []), getattr(case, 'scoring_weights', None))
+        criteria=normalize_criteria(getattr(case,'scoring_criteria',None),getattr(case,'scoring_weights',None))
+        scored = score_options(options.data.get('options', []), criteria=criteria)
         scoring = AgentResult(
             'scoring', 'success', 'تقييم البدائل', 'تم حساب الدرجات داخل النظام.',
-            data={'options': scored}, confidence=1,
+            data={'options': scored,'criteria':criteria}, confidence=1,
             metadata={'analysis_source': 'python', 'estimated_cost_usd': 0.0},
         )
         ctx.results['scoring'] = scoring
@@ -135,8 +136,11 @@ class Orchestrator:
         evidence_data = evidence.data
         chief_data = chief.data
         critic_data = critic.data
+        baseline_sensitivity=sensitivity_analysis(options.data.get('options',[]),criteria)
         deterministic_confidence, confidence_breakdown = compose_confidence(
             {**evidence_data, 'sources': evidence.sources}, scored,
+            clarifications=evidence_data.get('missing_information',[]),assumptions=evidence_data.get('assumptions',[]),
+            conflicts=critic_data.get('challenges',[]),sensitivity=baseline_sensitivity,
         )
         any_ai = any(r.metadata.get('analysis_source') == 'openai' for r in ctx.results.values())
         total_cost = round(sum(float(x.get('estimated_cost_usd', 0) or 0) for x in audit), 6)
@@ -167,6 +171,9 @@ class Orchestrator:
                 'readiness': evidence_data.get('readiness', 'low'),
                 'evidence_sources': evidence.sources,
                 'options': scored,
+                'scoring_criteria':criteria,
+                'calculation_metadata':{'scoring_method':'weighted-normalized-v2','confidence_method':'deterministic-v2','generated_at':datetime.now(timezone.utc).isoformat()},
+                'sensitivity':baseline_sensitivity,
                 'critic': critic_data,
                 'run_metrics': {
                     'estimated_cost_usd': total_cost,

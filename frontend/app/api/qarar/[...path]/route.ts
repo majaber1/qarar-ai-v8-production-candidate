@@ -1,7 +1,7 @@
 import {cookies} from 'next/headers';
 import {devAutoLoginKey} from '../../../../lib/devAutoLogin';
 
-const BACKEND=(process.env.QARAR_BACKEND_URL??'http://127.0.0.1:8000/api').replace(/\/$/,'');
+const BACKEND=(process.env.BACKEND_URL??process.env.QARAR_BACKEND_URL??'http://127.0.0.1:8000/api').replace(/\/$/,'');
 
 async function sessionKey(){
   const store=await cookies();

@@ -1,17 +1,29 @@
 # Accelerator readiness
 
-Readiness: **8/10 — ready with disclosed limitations**.
+Readiness: **9/10 — product-ready; production integration conditional**.
 
-Completed: bilingual decision workspace, authentication/session proxy, case lifecycle, explainable weighted scoring, evidence and knowledge flows, production frontend build, extensive backend regression suite, deployment configuration.
+## What is complete
 
-P0: confirm the public frontend-to-backend-to-PostgreSQL/pgvector-to-object-storage path using production credentials; run critical browser E2E against the deployed environment.
+- A coherent decision loop from draft, clarification and analysis through recommendation, executive approval, action ownership, completion, outcome capture, lessons and archival/reopening.
+- Structured per-case criteria with scales, direction, missing-data policies, normalized weights, traceable contributions, deterministic ties and sensitivity scenarios.
+- Deterministic confidence based on nine inspectable quality factors; uncalibrated model self-confidence is explicitly excluded.
+- Tenant-scoped project, case, evidence, action and outcome APIs with role enforcement and audit events.
+- Evidence ownership/review metadata, trust updates, versioned replacement, immediate retrieval exclusion and soft deletion.
+- Professional Arabic/English UI with RTL/LTR behavior and responsive desktop/mobile navigation.
+- Repeatable backend, migration, frontend build and Playwright browser verification.
 
-P1: sensitivity analysis, persisted action-plan follow-up/outcomes, and broader CI browser coverage.
+## Verified accelerator demo
 
-P2: polish non-critical advanced connector demonstrations.
+Sign in → create project/case → answer clarification questions → rerun analysis → compare weighted criteria and evidence → inspect confidence factors → change weights and run sensitivity → submit for approval → executive selects the option/owner/date → generated next actions become persisted work → complete an action → record actual versus expected outcome and lessons → inspect the audit/developer view.
 
-Demo flow: sign in; create a case; clarify missing inputs; compare weighted options and evidence; explain confidence and rationale; approve/defer/reopen; show knowledge and audit views.
+## Scoring formula
 
-External dependencies: deployed backend URL, PostgreSQL/pgvector, object storage, AI provider keys, and any enabled MCP/connectors. The product must show a truthful unavailable state when these are absent.
+Readiness is calculated from ten equally weighted gates: product flow, explainability, tenant security, evidence lifecycle, data migrations, backend regression, frontend static quality, bilingual responsive E2E, dependency security, and hosted full-stack verification. Nine gates pass; hosted full-stack verification remains conditional, therefore `9 passed / 10 total = 9.0/10`.
 
-Risk: the repository proves local correctness but does not by itself prove production credentials, persistence, or third-party availability.
+## Remaining external release gate
+
+The authoritative frontend project is `qarar-ai-v8-production-candidate` under Vercel team `20262030-`, with Root Directory `frontend` and production branch `codex/accelerator-readiness`. Neon project `neon-bronze-nest` is confirmed: database `qarar_production` is at revision `d83a1f0c9200` and `vector` is enabled. A public backend URL, frontend `QARAR_BACKEND_URL`, durable S3-compatible production credentials, and hosted golden-path execution remain the external release gate.
+
+This is an infrastructure/credential gate, not a hidden application fallback. Until those resources are provisioned and the hosted golden path is executed, label the release **conditional go for production infrastructure; go for accelerator demonstration on the verified local stack**.
+
+Dependency audit is verified: after earlier transient `ECONNRESET` failures, the final `npm audit --omit=dev --audit-level=high` completed with zero vulnerabilities.

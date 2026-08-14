@@ -59,7 +59,7 @@ export function ApprovalPanel({x,busy,approve}:{x:QCase,busy:boolean,approve:(oi
   const[owner,setOwner]=useState('');
   const[due,setDue]=useState('');
   const options=x.analysis?.options||[];
-  if(x.status!=='recommendation_ready'||!options.length||x.approved_option) return null;
+  if(!['recommendation_ready','pending_approval'].includes(x.status)||!options.length||x.approved_option) return null;
   return <section className="approvalPanel">
     <span className="kicker">{t('الاعتماد التنفيذي','Executive approval')}</span>
     <h2>{t('اعتمد القرار','Approve decision')}</h2>

@@ -1,6 +1,7 @@
 import json
 import queue
 import threading
+from datetime import date, datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -10,7 +11,7 @@ from app.core.audit import record_audit
 from app.core.auth import Principal, require_principal, require_roles
 from app.core.database import get_db, SessionLocal
 from app.core.ratelimit import check_ai_rate_limit, check_budget
-from app.models.case import DecisionCase
+from app.models.case import DecisionAction, DecisionCase, DecisionOutcome
 from app.models.fabric import KnowledgeSource
 from app.models.security import DecisionApproval
 from app.models.workspace import Project
@@ -20,16 +21,56 @@ from app.services.clarification import classify_missing_information
 from app.services.contracts import CaseInput
 from app.services.fabric import ingest_source
 from app.services.orchestrator import orchestrator
-from app.services.tools.scoring import normalize_weights
+from app.services.tools.scoring import normalize_criteria, normalize_weights, sensitivity_analysis
 
 class ClarificationAnswers(BaseModel):
     answers: dict[str, str]
+
+class SensitivityRequest(BaseModel):
+    weight_changes:dict[str,float]={}
+    score_changes:dict[str,dict[str,float]]={}
+
+class ActionCreate(BaseModel):
+    title:str
+    description:str|None=None
+    owner:str
+    status:str='not_started'
+    priority:str='medium'
+    due_date:date|None=None
+    dependency_id:int|None=None
+    source_reference:str|None=None
+    notes:str|None=None
+
+class ActionUpdate(BaseModel):
+    title:str|None=None;description:str|None=None;owner:str|None=None;status:str|None=None
+    priority:str|None=None;due_date:date|None=None;dependency_id:int|None=None;notes:str|None=None
+
+class OutcomeCreate(BaseModel):
+    result:str
+    expected_result:str
+    actual_result:str
+    lessons_learned:str|None=None
+    corrective_action:str|None=None
+    next_review_date:date|None=None
 
 router = APIRouter(prefix='/cases', tags=['cases'])
 
 
 def _case_for_tenant(db: Session, case_id: int, tenant_id: str) -> DecisionCase | None:
     return db.scalar(select(DecisionCase).where(DecisionCase.id == case_id, DecisionCase.tenant_id == tenant_id))
+
+
+@router.get('/follow-up/summary')
+def follow_up_summary(db: Session = Depends(get_db), principal: Principal = Depends(require_principal)):
+    actions = list(db.scalars(select(DecisionAction).where(DecisionAction.tenant_id == principal.tenant_id)).all())
+    today = date.today()
+    return {
+        'open_actions': sum(x.status not in {'completed', 'cancelled'} for x in actions),
+        'overdue_actions': sum(
+            bool(x.due_date and x.due_date < today and x.status not in {'completed', 'cancelled'}) for x in actions
+        ),
+        'completed_actions': sum(x.status == 'completed' for x in actions),
+    }
 
 
 @router.post('', response_model=CaseResponse, status_code=201)
@@ -42,7 +83,11 @@ def create_case(p: CaseCreate, db: Session = Depends(get_db), principal: Princip
             values['scoring_weights'] = normalize_weights(values['scoring_weights'])
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
-    x = DecisionCase(tenant_id=principal.tenant_id, created_by=principal.subject, **values)
+    if values.get('scoring_criteria') is not None:
+        try: values['scoring_criteria']=normalize_criteria(values['scoring_criteria'])
+        except ValueError as exc: raise HTTPException(422,str(exc)) from exc
+    if values.get('scoring_criteria') is None: values['scoring_criteria']=normalize_criteria(None,values.get('scoring_weights'))
+    x = DecisionCase(tenant_id=principal.tenant_id, created_by=principal.subject, status='draft', **values)
     db.add(x); db.commit(); db.refresh(x)
     record_audit(principal.tenant_id, principal.subject, 'case_created', auth_type=principal.auth_type,
                  resource_type='case', resource_id=x.id, metadata={'title': x.title, 'project_id': x.project_id})
@@ -81,6 +126,9 @@ def update_case(case_id: int, payload: CaseUpdate, db: Session = Depends(get_db)
             values['scoring_weights'] = normalize_weights(values['scoring_weights'])
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
+    if values.get('scoring_criteria') is not None:
+        try: values['scoring_criteria']=normalize_criteria(values['scoring_criteria'])
+        except ValueError as exc: raise HTTPException(422,str(exc)) from exc
     for field, value in values.items():
         setattr(case, field, value)
     db.commit(); db.refresh(case)
@@ -95,29 +143,32 @@ def transition_case(case_id: int, payload: CaseTransitionRequest, db: Session = 
     case = _case_for_tenant(db, case_id, principal.tenant_id)
     if not case:
         raise HTTPException(404, 'Case not found')
-    if payload.status == 'rejected' and 'executive' not in principal.roles:
-        raise HTTPException(403, 'Only an executive can reject a recommendation')
+    target_status='reopened' if payload.status=='open' else payload.status
+    if target_status in {'approved','rejected'} and 'executive' not in principal.roles:
+        raise HTTPException(403, 'Only an executive can approve or reject a recommendation')
     allowed = {
-        'open': {'archived', 'deferred'},
-        'needs_clarification': {'archived', 'deferred'},
-        'recommendation_ready': {'archived', 'deferred', 'rejected'},
-        'approved': {'archived', 'open'},
-        'rejected': {'archived', 'open'},
-        'deferred': {'archived', 'open'},
-        'archived': {'open'},
+        'open': {'ready_for_analysis','deferred','archived'}, 'draft': {'ready_for_analysis','deferred','archived'},
+        'needs_clarification': {'needs_information','ready_for_analysis','deferred','archived'},
+        'needs_information': {'ready_for_analysis','deferred','archived'},
+        'ready_for_analysis': {'analyzing','deferred','archived'}, 'analyzing': {'recommendation_ready','needs_information'},
+        'recommendation_ready': {'pending_approval','rejected','deferred','archived'},
+        'pending_approval': {'approved','rejected','deferred','archived'},
+        'approved': {'reopened','archived'}, 'rejected': {'reopened','archived'},
+        'deferred': {'reopened','archived'}, 'reopened': {'ready_for_analysis','deferred','archived'},
+        'archived': {'reopened'},
     }
-    if payload.status not in allowed.get(case.status, set()):
-        raise HTTPException(409, f'Cannot transition case from {case.status} to {payload.status}')
+    if target_status not in allowed.get(case.status, set()):
+        raise HTTPException(409, f'Cannot transition case from {case.status} to {target_status}')
     previous = case.status
-    case.status = payload.status
-    if payload.status == 'open':
+    case.status = target_status
+    if target_status == 'reopened':
         case.approved_option = None
         case.decision_owner = None
         case.due_date = None
     db.commit(); db.refresh(case)
     record_audit(principal.tenant_id, principal.subject, 'case_status_changed', auth_type=principal.auth_type,
                  resource_type='case', resource_id=case.id,
-                 metadata={'from': previous, 'to': payload.status, 'reason': payload.reason})
+                 metadata={'from': previous, 'to': target_status, 'reason': payload.reason})
     return case
 
 
@@ -126,15 +177,18 @@ def analyze(case_id: int, db: Session = Depends(get_db), principal: Principal = 
     x = _case_for_tenant(db, case_id, principal.tenant_id)
     if not x:
         raise HTTPException(404, 'Case not found')
+    if x.status not in {'draft','open','reopened','ready_for_analysis','needs_information','needs_clarification','recommendation_ready'}:
+        raise HTTPException(409,'Case must be reopened before analysis')
     ok, reason = check_budget(principal.tenant_id)
     if not ok:
         raise HTTPException(429, reason)
     ok, reason = check_ai_rate_limit(principal.subject)
     if not ok:
         raise HTTPException(429, reason)
-    r = analyze_case(x.id, x.title, x.description, x.urgency, x.category, x.language, principal.tenant_id, x.scoring_weights)
+    previous=x.status;x.status='analyzing';db.commit()
+    r = analyze_case(x.id, x.title, x.description, x.urgency, x.category, x.language, principal.tenant_id, x.scoring_weights, x.scoring_criteria)
     x.selected_agents=r['selected_agents']; x.skipped_agents=r['skipped_agents']; x.agent_results=r['agent_results']
-    x.analysis=r['analysis']; x.audit_log=r['audit_log']; x.analysis_source=r['analysis_source']
+    x.analysis=r['analysis']; x.audit_log=r['audit_log']; x.analysis_source=r['analysis_source'];x.calculation_metadata=(r['analysis'] or {}).get('calculation_metadata')
 
     # Intelligent clarification gate: only surface it the FIRST time (once the PM has answered,
     # x.clarification_answers is set and we don't re-block on the same unresolved unknowns forever).
@@ -166,7 +220,7 @@ def clarify(case_id: int, req: ClarificationAnswers, db: Session = Depends(get_d
         raise HTTPException(400, 'At least one answer is required')
     x.clarification_answers = {**(x.clarification_answers or {}), **req.answers}
     x.pending_clarifications = None
-    x.status = 'recommendation_ready'
+    x.status = 'ready_for_analysis'
     db.commit()
 
     # Answers become organizational evidence (Trust B) so the next analysis run can see them.
@@ -192,14 +246,18 @@ def analyze_stream(case_id: int, principal: Principal = Depends(require_roles('p
         x = _case_for_tenant(db, case_id, tenant_id)
         if not x:
             raise HTTPException(404, 'Case not found')
+        if x.status not in {'draft','open','reopened','ready_for_analysis','needs_information','needs_clarification','recommendation_ready'}:
+            raise HTTPException(409, 'Case must be reopened before analysis')
         ok, reason = check_budget(tenant_id)
         if not ok:
             raise HTTPException(429, reason)
         ok, reason = check_ai_rate_limit(principal.subject)
         if not ok:
             raise HTTPException(429, reason)
+        x.status = 'analyzing'
+        db.commit()
         case = CaseInput(x.id, x.title, x.description, x.urgency, x.category, x.language, tenant_id,
-                         scoring_weights=x.scoring_weights)
+                         scoring_weights=x.scoring_weights,scoring_criteria=x.scoring_criteria)
 
     events: queue.Queue = queue.Queue()
     done = object()
@@ -215,7 +273,7 @@ def analyze_stream(case_id: int, principal: Principal = Depends(require_roles('p
                 if target:
                     target.selected_agents=result['selected_agents']; target.skipped_agents=result['skipped_agents']
                     target.agent_results=result['agent_results']; target.analysis=result['analysis']; target.audit_log=result['audit_log']
-                    target.analysis_source=result['analysis_source']
+                    target.analysis_source=result['analysis_source'];target.calculation_metadata=(result['analysis'] or {}).get('calculation_metadata')
                     unknowns=(result['analysis'] or {}).get('unknowns') or []
                     gate=classify_missing_information(unknowns,tenant_id,target.id) if unknowns and not target.clarification_answers else {'top_questions':[]}
                     target.pending_clarifications=gate['top_questions'] or None
@@ -251,6 +309,7 @@ def approve(case_id: int, p: ApprovalRequest, db: Session = Depends(get_db), pri
         raise HTTPException(404, 'Analyzed case not found')
     if p.option_id not in {o.get('id') for o in x.analysis.get('options', [])}:
         raise HTTPException(400, 'Invalid option')
+    if x.status not in {'recommendation_ready','pending_approval'}: raise HTTPException(409,'Case is not ready for approval')
     x.approved_option=p.option_id; x.decision_owner=p.decision_owner; x.due_date=p.due_date; x.status='approved'
     db.add(DecisionApproval(
         tenant_id=principal.tenant_id,
@@ -260,8 +319,87 @@ def approve(case_id: int, p: ApprovalRequest, db: Session = Depends(get_db), pri
         approved_by=principal.subject,
         status='approved',
     ))
+    for index, title in enumerate((x.analysis or {}).get('executive', {}).get('next_actions', [])):
+        if not isinstance(title, str) or not title.strip():
+            continue
+        reference = f'chief_advisor:{index}'
+        existing = db.scalar(select(DecisionAction).where(
+            DecisionAction.tenant_id == principal.tenant_id,
+            DecisionAction.case_id == x.id,
+            DecisionAction.source_reference == reference,
+        ))
+        if not existing:
+            db.add(DecisionAction(
+                tenant_id=principal.tenant_id,
+                case_id=x.id,
+                title=title.strip(),
+                owner=p.decision_owner,
+                due_date=p.due_date,
+                created_by=principal.subject,
+                source_reference=reference,
+            ))
     db.commit(); db.refresh(x)
     record_audit(principal.tenant_id, principal.subject, 'case_approved', auth_type=principal.auth_type,
                  resource_type='case', resource_id=x.id,
                  metadata={'option_id': p.option_id, 'decision_owner': p.decision_owner})
     return x
+
+@router.post('/{case_id}/sensitivity')
+def sensitivity(case_id:int,payload:SensitivityRequest,db:Session=Depends(get_db),principal:Principal=Depends(require_principal)):
+    case=_case_for_tenant(db,case_id,principal.tenant_id)
+    if not case or not case.analysis: raise HTTPException(404,'Analyzed case not found')
+    options=case.analysis.get('options') or []
+    criteria=case.scoring_criteria or [x for x in (options[0].get('criterion_details') if options else [])]
+    result=sensitivity_analysis(options,criteria,dict(payload.weight_changes),dict(payload.score_changes))
+    record_audit(principal.tenant_id,principal.subject,'sensitivity_run',auth_type=principal.auth_type,resource_type='case',resource_id=case.id,metadata={'stability':result['stability']})
+    return result
+
+def _action_dict(x):
+    return {c.name:getattr(x,c.name) for c in x.__table__.columns}
+
+@router.get('/{case_id}/actions')
+def list_actions(case_id:int,status:str|None=None,db:Session=Depends(get_db),principal:Principal=Depends(require_principal)):
+    if not _case_for_tenant(db,case_id,principal.tenant_id):raise HTTPException(404,'Case not found')
+    q=select(DecisionAction).where(DecisionAction.case_id==case_id,DecisionAction.tenant_id==principal.tenant_id)
+    if status:q=q.where(DecisionAction.status==status)
+    return [_action_dict(x) for x in db.scalars(q.order_by(DecisionAction.created_at.desc())).all()]
+
+@router.post('/{case_id}/actions',status_code=201)
+def create_action(case_id:int,payload:ActionCreate,db:Session=Depends(get_db),principal:Principal=Depends(require_roles('project_manager','executive'))):
+    case=_case_for_tenant(db,case_id,principal.tenant_id)
+    if not case:raise HTTPException(404,'Case not found')
+    if payload.status not in {'not_started','in_progress','blocked','completed','cancelled'}:raise HTTPException(422,'Invalid action status')
+    if payload.dependency_id and not db.scalar(select(DecisionAction).where(DecisionAction.id==payload.dependency_id,DecisionAction.case_id==case_id,DecisionAction.tenant_id==principal.tenant_id)):raise HTTPException(404,'Dependency not found')
+    action=DecisionAction(tenant_id=principal.tenant_id,case_id=case_id,created_by=principal.subject,**payload.model_dump())
+    if action.status=='completed':action.completion_date=date.today()
+    db.add(action);db.commit();db.refresh(action)
+    record_audit(principal.tenant_id,principal.subject,'action_created',auth_type=principal.auth_type,resource_type='decision_action',resource_id=action.id,metadata={'case_id':case_id})
+    return _action_dict(action)
+
+@router.patch('/{case_id}/actions/{action_id}')
+def update_action(case_id:int,action_id:int,payload:ActionUpdate,db:Session=Depends(get_db),principal:Principal=Depends(require_roles('project_manager','executive'))):
+    action=db.scalar(select(DecisionAction).where(DecisionAction.id==action_id,DecisionAction.case_id==case_id,DecisionAction.tenant_id==principal.tenant_id))
+    if not action:raise HTTPException(404,'Action not found')
+    values=payload.model_dump(exclude_unset=True)
+    if values.get('status') and values['status'] not in {'not_started','in_progress','blocked','completed','cancelled'}:raise HTTPException(422,'Invalid action status')
+    for key,value in values.items():setattr(action,key,value)
+    if values.get('status')=='completed' and not action.completion_date:action.completion_date=date.today()
+    if values.get('status')!='completed' and 'status' in values:action.completion_date=None
+    db.commit();db.refresh(action)
+    record_audit(principal.tenant_id,principal.subject,'action_updated',auth_type=principal.auth_type,resource_type='decision_action',resource_id=action.id,metadata={'fields':sorted(values)})
+    return _action_dict(action)
+
+@router.get('/{case_id}/outcomes')
+def outcomes(case_id:int,db:Session=Depends(get_db),principal:Principal=Depends(require_principal)):
+    if not _case_for_tenant(db,case_id,principal.tenant_id):raise HTTPException(404,'Case not found')
+    return [_action_dict(x) for x in db.scalars(select(DecisionOutcome).where(DecisionOutcome.case_id==case_id,DecisionOutcome.tenant_id==principal.tenant_id).order_by(DecisionOutcome.created_at.desc())).all()]
+
+@router.post('/{case_id}/outcomes',status_code=201)
+def record_outcome(case_id:int,payload:OutcomeCreate,db:Session=Depends(get_db),principal:Principal=Depends(require_roles('project_manager','executive'))):
+    case=_case_for_tenant(db,case_id,principal.tenant_id)
+    if not case or case.status not in {'approved','archived'}:raise HTTPException(409,'Outcome requires an approved decision')
+    if payload.result not in {'success','partial','failure'}:raise HTTPException(422,'Invalid outcome result')
+    outcome=DecisionOutcome(tenant_id=principal.tenant_id,case_id=case_id,recorded_by=principal.subject,**payload.model_dump())
+    db.add(outcome);db.commit();db.refresh(outcome)
+    record_audit(principal.tenant_id,principal.subject,'outcome_recorded',auth_type=principal.auth_type,resource_type='decision_outcome',resource_id=outcome.id,metadata={'case_id':case_id,'result':outcome.result})
+    return _action_dict(outcome)

@@ -158,7 +158,7 @@ def test_clarify_endpoint_stores_answers_and_unblocks():
     })
     assert r2.status_code == 200
     data = r2.json()
-    assert data['status'] == 'recommendation_ready'
+    assert data['status'] == 'ready_for_analysis'
     assert data['pending_clarifications'] is None
     assert data['clarification_answers']['What is the budget?'] == '500K SAR'
 

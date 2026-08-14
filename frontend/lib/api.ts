@@ -4,7 +4,7 @@ export type QCase = {
   id:number; project_id?:number; title:string; description:string; urgency:string; category?:string; language?:string; status:string;
   selected_agents?:string[]; skipped_agents?:string[]; agent_results?:Record<string,any>; analysis?:Record<string,any>;
   audit_log?:any[]; analysis_source?:string; approved_option?:string; decision_owner?:string; due_date?:string;
-  pending_clarifications?:string[]; clarification_answers?:Record<string,string>;
+  pending_clarifications?:string[]; clarification_answers?:Record<string,string>; scoring_criteria?:any[]; calculation_metadata?:Record<string,any>;
   created_at:string; updated_at:string;
 };
 
@@ -56,10 +56,16 @@ export const api = {
   get:(id:string)=>req(`/cases/${id}`),
   create:(x:any)=>req('/cases',{method:'POST',body:JSON.stringify(x)}),
   update:(id:string,x:any)=>req(`/cases/${id}`,{method:'PATCH',body:JSON.stringify(x)}),
-  transition:(id:string,status:'archived'|'rejected'|'deferred'|'open',reason:string)=>req(`/cases/${id}/transition`,{method:'POST',body:JSON.stringify({status,reason})}),
+  transition:(id:string,status:string,reason:string)=>req(`/cases/${id}/transition`,{method:'POST',body:JSON.stringify({status,reason})}),
   analyze:(id:string)=>req(`/cases/${id}/analyze`,{method:'POST'}),
   approve:(id:string,x:any)=>req(`/cases/${id}/approve`,{method:'POST',body:JSON.stringify(x)}),
   clarify:(id:string,answers:Record<string,string>)=>req(`/cases/${id}/clarify`,{method:'POST',body:JSON.stringify({answers})}),
+  sensitivity:(id:string,weight_changes:Record<string,number>)=>req(`/cases/${id}/sensitivity`,{method:'POST',body:JSON.stringify({weight_changes,score_changes:{}})}),
+  actions:(id:string)=>req(`/cases/${id}/actions`),
+  createAction:(id:string,x:any)=>req(`/cases/${id}/actions`,{method:'POST',body:JSON.stringify(x)}),
+  updateAction:(id:string,actionId:number,x:any)=>req(`/cases/${id}/actions/${actionId}`,{method:'PATCH',body:JSON.stringify(x)}),
+  outcomes:(id:string)=>req(`/cases/${id}/outcomes`),
+  createOutcome:(id:string,x:any)=>req(`/cases/${id}/outcomes`,{method:'POST',body:JSON.stringify(x)}),
 
   // Knowledge (V4 compat)
   items:(caseId?:string)=>req(`/knowledge/items${caseId?`?case_id=${caseId}`:''}`),
