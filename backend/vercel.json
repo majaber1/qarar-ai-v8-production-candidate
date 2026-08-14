@@ -5,5 +5,8 @@
       "maxDuration": 300,
       "includeFiles": "config/**"
     }
-  }
+  },
+  "rewrites": [
+    {"source": "/(.*)", "destination": "/api/index"}
+  ]
 }
