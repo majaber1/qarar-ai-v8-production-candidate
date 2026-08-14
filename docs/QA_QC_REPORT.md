@@ -44,5 +44,6 @@ The implementation returns the nine factors, positives, uncertainties and improv
 - Frontend and backend `vercel.json` files are structurally present.
 - No repository Vercel link metadata was found, so the target account/project cannot be safely inferred locally.
 - Neon PostgreSQL is verified against `neon-bronze-nest`: `qarar_production` is migrated to `d83a1f0c9200` and pgvector is enabled. Durable S3-compatible persistence remains unconfigured; the verified object lifecycle tests used local storage.
+- GitHub Actions passed backend, frontend, and Compose jobs for the release commit. GitHub also recorded a successful Vercel Production deployment; `/`, `/project`, and `/cases/new` return HTTP 200 from the stable alias. `/api/deployment-health` accurately returns HTTP 503 because `QARAR_BACKEND_URL` is not configured.
 
 Production sign-off requires an authorized operator to provision/link the services, apply Alembic to PostgreSQL, configure server-only variables, retain deployment protection or an approved public access policy, and rerun the same Playwright suite against the hosted URL.
