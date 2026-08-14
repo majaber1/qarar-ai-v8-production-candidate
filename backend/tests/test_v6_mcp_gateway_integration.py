@@ -57,7 +57,7 @@ def live_mcp_server():
         db_path.unlink()
     proc = subprocess.Popen(
         [sys.executable, '-m', 'uvicorn', 'app.mcp_server:app', '--host', '127.0.0.1', '--port', str(port)],
-        cwd=str(BACKEND_DIR), env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        cwd=str(BACKEND_DIR), env=env, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT,
     )
     try:
         _wait_for_port(port)
