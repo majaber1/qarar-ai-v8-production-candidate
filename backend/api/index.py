@@ -1,4 +1,4 @@
-"""Vercel Python Function entrypoint for the Qarar FastAPI API."""
+"""Vercel Python Function entrypoint for the Qarar FastAPI production API."""
 
 from app.main import app
 
