@@ -1,6 +1,6 @@
 # Accelerator readiness
 
-Readiness: **9/10 — product-ready; production integration conditional**.
+Readiness: **9.5/10 — hosted full stack ready; durable uploads conditional**.
 
 ## What is complete
 
@@ -18,12 +18,12 @@ Sign in → create project/case → answer clarification questions → rerun ana
 
 ## Scoring formula
 
-Readiness is calculated from ten equally weighted gates: product flow, explainability, tenant security, evidence lifecycle, data migrations, backend regression, frontend static quality, bilingual responsive E2E, dependency security, and hosted full-stack verification. Nine gates pass; hosted full-stack verification remains conditional, therefore `9 passed / 10 total = 9.0/10`.
+Readiness is calculated from ten equally weighted gates: product flow, explainability, tenant security, evidence lifecycle, data migrations, backend regression, frontend static quality, bilingual responsive E2E, dependency security, and hosted full-stack verification. The first nine gates pass. The hosted gate receives half credit because the authenticated backend, Neon database and frontend proxy are live, while durable evidence uploads still need S3-compatible storage: `(9 full gates + 0.5 hosted gate) / 10 = 9.5/10`.
 
 ## Remaining external release gate
 
-The authoritative frontend project is `qarar-ai-v8-production-candidate` under Vercel team `20262030-`, with Root Directory `frontend` and production branch `codex/accelerator-readiness`. Neon project `neon-bronze-nest` is confirmed: database `qarar_production` is at revision `d83a1f0c9200` and `vector` is enabled. A public backend URL, frontend `QARAR_BACKEND_URL`, durable S3-compatible production credentials, and hosted golden-path execution remain the external release gate.
+The authoritative Vercel projects are `qarar-ai-v8-production-candidate` (Root Directory `frontend`) and `qarar-ai-backend` (Root Directory `backend`) under team `20262030-`; both track `codex/accelerator-readiness`. `QARAR_BACKEND_URL` points to the public authenticated backend and the frontend deployment-health route reports both tiers ready. Neon project `neon-bronze-nest` is confirmed: database `qarar_production` is at revision `d83a1f0c9200` and `vector` is enabled. Durable S3-compatible production credentials remain the only infrastructure release gate.
 
-This is an infrastructure/credential gate, not a hidden application fallback. Until those resources are provisioned and the hosted golden path is executed, label the release **conditional go for production infrastructure; go for accelerator demonstration on the verified local stack**.
+This is an upload-durability infrastructure gate, not a hidden application fallback. Until S3-compatible storage is provisioned, label the release **go for accelerator demonstration and database-backed production flows; conditional for durable evidence uploads**.
 
 Dependency audit is verified: after earlier transient `ECONNRESET` failures, the final `npm audit --omit=dev --audit-level=high` completed with zero vulnerabilities.

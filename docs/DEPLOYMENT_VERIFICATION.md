@@ -10,9 +10,11 @@
 | Production URL | `https://qarar-ai-v8-production-candidate.vercel.app` |
 | Production pages | `/`, `/project`, and `/cases/new` return HTTP 200 |
 | Data platform | Neon `neon-bronze-nest` / `qarar_production`; Alembic `d83a1f0c9200`; pgvector enabled |
-| Backend binding | Not configured: `/api/deployment-health` returns HTTP 503 with missing `QARAR_BACKEND_URL` |
-| Object storage | Local and S3-compatible adapters are implemented and tested; production S3 credentials are not provisioned |
+| Backend project | `qarar-ai-backend`; Root Directory `backend`; public URL `https://qarar-ai-backend.vercel.app` |
+| Backend binding | `QARAR_BACKEND_URL=https://qarar-ai-backend.vercel.app/api` for Production and Preview |
+| Live health | Frontend `/api/deployment-health`: HTTP 200, frontend/backend `ready`; backend `/api/health`: HTTP 200, PostgreSQL and auth enabled |
+| Object storage | Local and S3-compatible adapters are implemented and tested; durable production S3 credentials are not provisioned |
 
-GitHub recorded the successful Vercel Production deployment against the authoritative branch commit. The immutable deployment URL is authentication-protected while the stable production alias is public. Local HEAD, GitHub branch HEAD, and the deployed source SHA must be compared after the final documentation commit; the release report records those values rather than embedding a self-referential SHA in this commit.
+GitHub recorded successful Vercel Production deployments for both projects against the authoritative branch commit. Both projects track `codex/accelerator-readiness`; their Root Directories are `frontend` and `backend`. The stable aliases are public while API data routes require application authentication. Local HEAD, GitHub branch HEAD, and the deployed frontend source SHA are compared after the final documentation commit rather than embedding a self-referential SHA here.
 
-The frontend deployment is valid and public, but full-stack production sign-off remains conditional until an authorized Vercel environment write configures `QARAR_BACKEND_URL` and a secure backend deployment receives Neon, authentication, CORS, and durable object-storage secrets. No secret was committed or substituted with an insecure fallback.
+The frontend-to-backend production link, Neon database, CORS and API authentication are live and health-checked. Full production sign-off remains conditional only for upload durability: the Vercel backend currently uses ephemeral local storage because no S3-compatible credentials were supplied. No secret was committed or substituted with an insecure fallback.

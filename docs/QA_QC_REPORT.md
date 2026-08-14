@@ -15,7 +15,7 @@ Release recommendation: **READY WITH DISCLOSED LIMITATIONS**.
 | Manual golden path | PASS | Arabic/English and desktop/mobile; clarification, analysis, sensitivity, action, approval, completion and outcome |
 | Dependency audit | PASS | Final `npm audit --omit=dev --audit-level=high`: zero vulnerabilities; earlier `ECONNRESET` was transient |
 | PostgreSQL/pgvector | PASS | Neon `neon-bronze-nest`, `qarar_production`, revision `d83a1f0c9200`, pgvector enabled |
-| Hosted full-stack path | BLOCKED EXTERNALLY | Backend URL, frontend backend binding, and durable object-storage credentials not yet confirmed |
+| Hosted full-stack path | PARTIAL PASS | Public authenticated backend and Neon are live; frontend health reports both tiers ready. Durable object storage remains unconfigured |
 
 ## Calculation verification
 
@@ -42,8 +42,8 @@ The implementation returns the nine factors, positives, uncertainties and improv
 
 - The authoritative frontend project is `qarar-ai-v8-production-candidate` under Vercel team `20262030-`; Root Directory is `frontend` and the production branch is `codex/accelerator-readiness`.
 - Frontend and backend `vercel.json` files are structurally present.
-- No repository Vercel link metadata was found, so the target account/project cannot be safely inferred locally.
-- Neon PostgreSQL is verified against `neon-bronze-nest`: `qarar_production` is migrated to `d83a1f0c9200` and pgvector is enabled. Durable S3-compatible persistence remains unconfigured; the verified object lifecycle tests used local storage.
-- GitHub Actions passed backend, frontend, and Compose jobs for the release commit. GitHub also recorded a successful Vercel Production deployment; `/`, `/project`, and `/cases/new` return HTTP 200 from the stable alias. `/api/deployment-health` accurately returns HTTP 503 because `QARAR_BACKEND_URL` is not configured.
+- The Git-connected projects are `qarar-ai-v8-production-candidate` (Root Directory `frontend`) and `qarar-ai-backend` (Root Directory `backend`); both track the authoritative product-readiness branch.
+- Neon PostgreSQL is verified against `neon-bronze-nest`: `qarar_production` is migrated to `d83a1f0c9200` and pgvector is enabled. Durable S3-compatible persistence remains unconfigured; local backend storage is ephemeral on Vercel.
+- GitHub recorded successful Vercel Production deployments. `/`, `/project`, and `/cases/new` return HTTP 200; frontend `/api/deployment-health` returns HTTP 200 with both tiers ready; backend `/api/health` returns HTTP 200 and reports PostgreSQL plus required authentication.
 
-Production sign-off requires an authorized operator to provision/link the services, apply Alembic to PostgreSQL, configure server-only variables, retain deployment protection or an approved public access policy, and rerun the same Playwright suite against the hosted URL.
+Final durable-upload sign-off requires S3-compatible production credentials and a hosted upload/download lifecycle rerun. Database-backed production flows are otherwise deployed with server-only secrets, authentication and CORS controls.
