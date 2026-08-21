@@ -20,9 +20,21 @@ export default function View(){
       <div className="execDecisionMetrics">
         <div><b>{Math.round((e.confidence||0)*100)}%</b><span>{t('الثقة','Confidence')}</span></div>
         <div><b>{x.analysis?.readiness||'—'}</b><span>{t('جاهزية الأدلة','Evidence readiness')}</span></div>
-        <div><b>{e.recommended_option_id||'—'}</b><span>{t('الخيار','Option')}</span></div>
+        <div><b>{e.recommended_option_id||'—'}</b><span>{t('الخيار المتصدر','Recommended')}</span></div>
+        <div><b>{x.analysis?.sensitivity?.stability === 'stable' ? t('مستقر','Stable') : t('حساس','Sensitive')}</b><span>{t('متانة السيناريوهات','Robustness')}</span></div>
       </div>
     </section>
+    {e.recommendation_stale && (
+      <section className="card p-4 bg-amber-950/40 border-2 border-amber-500 text-amber-200 text-sm space-y-1 shadow-xl">
+        <div className="flex items-center gap-2 font-bold text-amber-300">
+          <span className="text-xl">⚠️</span>
+          <span>{t('تنبيه: تم تعديل درجات التقييم وتغيرت التوصية الأصلية', 'Notice: Scores were modified, changing the original recommendation')}</span>
+        </div>
+        <p className="text-xs text-white/90 ps-7">
+          {e.stale_reason || t('يرجى مراجعة التوصية المحدثة وإعادة اعتمادها.', 'Please review the recalculated recommendation and submit for approval.')}
+        </p>
+      </section>
+    )}
     <ApprovalPanel x={x} busy={busy} approve={approve}/>
     {x.approved_option&&<section className="approvedBanner">
       <span className="kicker light">{t('معتمد','Approved')}</span>

@@ -30,8 +30,9 @@ def test_confidence_is_deterministic_and_explained():
     value, breakdown = compose_confidence(
         {'facts': ['fact'], 'missing_information': [], 'sources': [{'id': 1}]}, options,
     )
-    assert value == .9
-    assert breakdown['method'] == 'deterministic-v1'
+    assert value == .83
+    assert breakdown['method'] == 'deterministic-v2'
+    assert breakdown['factors']['scoring_completeness'] == 1
     assert breakdown['uncalibrated_model_confidence_excluded'] is True
 
 
@@ -57,7 +58,7 @@ def test_case_custom_scoring_edit_and_audited_lifecycle():
     reopened = client.post(f"/api/cases/{case['id']}/transition", headers=HEADERS,
                            json={'status': 'open', 'reason': 'Evidence received; resume analysis'})
     assert reopened.status_code == 200
-    assert reopened.json()['status'] == 'open'
+    assert reopened.json()['status'] == 'reopened'
 
 
 def test_case_rejects_invalid_scoring_configuration():

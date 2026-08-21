@@ -12,8 +12,8 @@ export default function AppHeader(){
   const links=[
     ['/project',t('لوحة القيادة','Dashboard')],
     ['/executive',t('مكتب التنفيذي','Executive office')],
-    ['/knowledge',t('المعرفة','Knowledge')],
-    ['/developer',t('التشغيل','Operations')],
+    ['/knowledge',t('أدلة القرار','Decision evidence')],
+    ['/developer',t('إدارة النظام','System administration')],
   ];
 
   useEffect(()=>setOpen(false),[path]);

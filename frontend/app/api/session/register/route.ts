@@ -1,4 +1,4 @@
-const BACKEND=(process.env.QARAR_BACKEND_URL??'http://127.0.0.1:8000/api').replace(/\/$/,'');
+const BACKEND=(process.env.BACKEND_URL??process.env.QARAR_BACKEND_URL??'http://127.0.0.1:8000/api').replace(/\/$/,'');
 export async function POST(req:Request){
   const body=await req.json().catch(()=>({}));
   try{

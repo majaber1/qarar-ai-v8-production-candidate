@@ -16,6 +16,11 @@ class KnowledgeSource(Base):
     trust_level:Mapped[str]=mapped_column(String(2),default='B',index=True)
     status:Mapped[str]=mapped_column(String(30),default='queued',index=True)
     metadata_json:Mapped[str|None]=mapped_column(Text,nullable=True)
+    version:Mapped[int]=mapped_column(Integer,default=1)
+    source_owner:Mapped[str|None]=mapped_column(String(200),nullable=True)
+    reviewed_at:Mapped[datetime|None]=mapped_column(DateTime,nullable=True)
+    supersedes_id:Mapped[int|None]=mapped_column(Integer,nullable=True,index=True)
+    deleted_at:Mapped[datetime|None]=mapped_column(DateTime,nullable=True,index=True)
     error:Mapped[str|None]=mapped_column(Text,nullable=True)
     created_at:Mapped[datetime]=mapped_column(DateTime,default=lambda:datetime.now(timezone.utc))
 

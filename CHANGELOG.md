@@ -1,5 +1,16 @@
 # Changelog
 
+## 9.0.0-beta.1 — 2026-08-21
+
+- **Evidence → Score Provenance**: Every score in the evaluation matrix contains deep mathematical and factual provenance linking raw score, normalized score, weight contribution, assessment method, rationale, cited knowledge sources, trust ratings (A/B/C/D), and audit actor.
+- **Mandatory Qualification Gates**: Configurable pass/fail thresholds that automatically disqualify non-compliant options while preserving raw and normalized scores for audit and compliance inspection.
+- **Five Standard Decision Templates**: Pre-configured enterprise templates (Cloud Platform Selection, Cybersecurity MDR, Tender / Contractor Award, Regional Expansion, AI Initiative Portfolio).
+- **Five Business Scenarios**: Multi-perspective evaluation presets (Balanced, Risk & Compliance, Cost & Financial, Speed / Time-to-Value, Strategic Growth) with instant sensitivity comparison.
+- **Human Review & Score Overrides**: Authorized human overrides with mandatory justification, automated deterministic recalculation, and recommendation stale detection.
+- **Visual Criteria Builder & Options Editor**: Interactive UI components for configuring weighted criteria, direction, scales, mandatory gates, and custom candidate paths.
+- **Database & Schema Upgrades**: Added `options`, `score_provenance`, and `override_history` JSON fields with clean Alembic migration `e1f9a2b3c4d5_v9_decision_provenance.py`.
+- **Authoritative Deterministic Engine**: 100% deterministic Python scoring engine maintains full authority over final rankings and scenario calculations.
+
 ## 8.2.0-beta.1 — 2026-08-11
 
 - Added validated, normalized per-case scoring weights; incomplete scores are now explicit instead of silently treated as zero.

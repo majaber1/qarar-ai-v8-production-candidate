@@ -1,6 +1,6 @@
 import {cookies} from 'next/headers';
 import {devAutoLoginKey} from '../../../../lib/devAutoLogin';
-const BACKEND=(process.env.QARAR_BACKEND_URL??'http://127.0.0.1:8000/api').replace(/\/$/,'');
+const BACKEND=(process.env.BACKEND_URL??process.env.QARAR_BACKEND_URL??'http://127.0.0.1:8000/api').replace(/\/$/,'');
 export async function GET(){
  const store=await cookies();const key=store.get('qarar_session_key')?.value||devAutoLoginKey();
  if(!key)return Response.json({detail:'Authentication required'},{status:401});

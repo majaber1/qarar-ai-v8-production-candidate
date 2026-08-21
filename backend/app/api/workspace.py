@@ -12,6 +12,8 @@ from app.core.audit import record_audit
 from app.core.auth import Principal, require_principal, require_roles
 from app.core.database import get_db
 from app.models.workspace import AccessRequest, Project, UserSession, WorkspaceUser
+from app.models.case import DecisionCase
+from app.models.fabric import KnowledgeSource
 
 router = APIRouter(tags=['workspace'])
 ROLES = {'project_manager', 'executive', 'analyst', 'developer'}
@@ -54,6 +56,12 @@ class ProjectCreate(BaseModel):
     name: str = Field(min_length=3, max_length=250)
     objective: str = Field(min_length=10, max_length=4000)
     owner: str = Field(min_length=2, max_length=200)
+
+class ProjectUpdate(BaseModel):
+    name:str|None=Field(default=None,min_length=3,max_length=250)
+    objective:str|None=Field(default=None,min_length=10,max_length=4000)
+    owner:str|None=Field(default=None,min_length=2,max_length=200)
+    status:str|None=None
 
 class ProfileUpdate(BaseModel):
     full_name: str = Field(min_length=2, max_length=200)
@@ -185,4 +193,17 @@ def list_projects(db: Session = Depends(get_db), principal: Principal = Depends(
 def get_project(project_id: int, db: Session = Depends(get_db), principal: Principal = Depends(require_principal)):
     project = db.scalar(select(Project).where(Project.id == project_id, Project.tenant_id == principal.tenant_id))
     if not project: raise HTTPException(404, 'Project not found')
+    cases=list(db.scalars(select(DecisionCase).where(DecisionCase.project_id==project_id,DecisionCase.tenant_id==principal.tenant_id)).all())
+    evidence=list(db.scalars(select(KnowledgeSource).where(KnowledgeSource.project_id==project_id,KnowledgeSource.tenant_id==principal.tenant_id,KnowledgeSource.deleted_at.is_(None))).all())
+    return {'id':project.id,'name':project.name,'objective':project.objective,'owner':project.owner,'status':project.status,'created_at':project.created_at,'updated_at':project.updated_at,'summary':{'cases':len(cases),'approved_cases':sum(x.status=='approved' for x in cases),'open_cases':sum(x.status not in {'approved','rejected','archived'} for x in cases),'evidence':len(evidence)},'cases':[{'id':x.id,'title':x.title,'status':x.status} for x in cases],'evidence':[{'id':x.id,'title':x.title,'status':x.status,'version':x.version} for x in evidence]}
+
+@router.patch('/projects/{project_id}')
+def update_project(project_id:int,req:ProjectUpdate,db:Session=Depends(get_db),principal:Principal=Depends(require_roles('project_manager','executive'))):
+    project=db.scalar(select(Project).where(Project.id==project_id,Project.tenant_id==principal.tenant_id))
+    if not project:raise HTTPException(404,'Project not found')
+    values=req.model_dump(exclude_unset=True)
+    if values.get('status') not in {None,'active','on_hold','archived'}:raise HTTPException(422,'Invalid project status')
+    for key,value in values.items():setattr(project,key,value.strip() if isinstance(value,str) else value)
+    db.commit();db.refresh(project)
+    record_audit(principal.tenant_id,principal.subject,'project_updated',auth_type=principal.auth_type,resource_type='project',resource_id=project.id,metadata={'fields':sorted(values)})
     return project

@@ -1,4 +1,4 @@
-const configuredBackend=process.env.QARAR_BACKEND_URL?.replace(/\/$/,'');
+const configuredBackend=(process.env.BACKEND_URL??process.env.QARAR_BACKEND_URL)?.replace(/\/$/,'');
 
 export async function GET(){
   if(!configuredBackend){

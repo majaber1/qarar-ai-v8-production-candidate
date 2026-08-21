@@ -2,7 +2,7 @@ name: Qarar CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, codex/accelerator-readiness, codex/v9-decision-provenance]
   pull_request:
 
 permissions:
@@ -52,8 +52,13 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
+      - run: npm run lint
       - run: npm run typecheck
       - run: npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run bilingual responsive smoke E2E
+        run: npm run test:e2e:smoke
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
 

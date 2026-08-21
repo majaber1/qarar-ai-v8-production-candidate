@@ -2,10 +2,11 @@
 import {useParams} from 'next/navigation';
 import {useCase,Header,ClarificationGate} from '@/components/CaseShell';
 import {useLang} from '@/components/LanguageProvider';
+import DecisionWorkflow from '@/components/DecisionWorkflow';
 function List({items}:{items?:string[]}){return <ul>{(items||[]).map((x,i)=><li key={i}>{x}</li>)}</ul>}
 export default function ProjectCaseView(){
   const{id}=useParams<{id:string}>();
-  const{x,busy,err,analyze,clarify}=useCase(id);
+  const{x,busy,err,analyze,clarify,setX}=useCase(id);
   const{t}=useLang();
   if(!x)return <main className="container">{err||t('جارٍ التحميل...','Loading...')}</main>;
   const a=x.analysis||{},results=x.agent_results||{};
@@ -35,8 +36,11 @@ export default function ProjectCaseView(){
     </div>)}</div>
     <div className="sectionHead"><div><span className="kicker">{t('الخيارات','Options')}</span><h2>{t('البدائل والمفاضلة','Options & trade-offs')}</h2></div></div>
     <div className="grid g3">{(a.options||[]).map((o:any)=><div className="card option" key={o.id}>
-      <span className="badge gold">{o.id}</span><h3>{o.title}</h3><div className="score">{o.weighted_score}/100</div>
+      <span className="badge gold">{o.id}</span><h3>{o.title}</h3><div className="score">{o.weighted_score===null?t('غير مكتمل','Incomplete'):`${o.weighted_score}/100`}</div>
       <p>{o.description}</p><h4>{t('الفوائد','Benefits')}</h4><List items={o.benefits}/><h4>{t('المخاطر','Risks')}</h4><List items={o.risks}/>
+      <h4>{t('لماذا حصل على هذه الدرجة؟','Why this score?')}</h4><div className="scoreDetails">{(o.criterion_details||[]).map((criterion:any)=><div key={criterion.key}><span>{criterion.name}</span><b>{criterion.normalized_score===null?'—':criterion.normalized_score}</b><small>{t('الوزن','Weight')} {Math.round(criterion.weight*100)}% · {t('المساهمة','Contribution')} {criterion.weighted_contribution??'—'}</small></div>)}</div>
+      {!!o.missing_criteria?.length&&<p className="muted">{t('درجات ناقصة:','Missing scores:')} {o.missing_criteria.join('، ')}</p>}
     </div>)}</div></>}
+    <DecisionWorkflow x={x} onChange={setX}/>
   </main>
 }
