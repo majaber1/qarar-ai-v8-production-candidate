@@ -91,7 +91,7 @@ npm audit --omit=dev --audit-level=high
 
 See `docs/ACCELERATOR_READINESS.md` and `docs/QA_QC_REPORT.md` for release evidence and known verification limits.
 
-Current audit and verified baseline: `docs/QARAR_FULL_AUDIT.md` and `docs/BASELINE_TEST_RESULTS.md`. The public frontend is deployed at `https://qarar-ai-v8-production-candidate.vercel.app` and is bound server-side to the authenticated FastAPI service at `https://qarar-ai-backend.vercel.app/api`. The production data target is Neon `neon-bronze-nest`: database `qarar_production` is at Alembic revision `d83a1f0c9200` with pgvector enabled. Durable S3-compatible object storage is the remaining production infrastructure dependency; the current backend storage setting is local and therefore ephemeral on Vercel.
+Current audit and verified baseline: `docs/QARAR_FULL_AUDIT.md` and `docs/BASELINE_TEST_RESULTS.md`. The single public application URL is `https://qarar-ai-v10.vercel.app`, bound server-side to the authenticated FastAPI backend via `QARAR_BACKEND_URL`. The production data target is Neon `neon-bronze-nest` with pgvector enabled. Durable S3-compatible object storage is the remaining production infrastructure dependency; the current backend storage setting is local and therefore ephemeral on Vercel.
 
 ## Arabic, English, and RTL
 
