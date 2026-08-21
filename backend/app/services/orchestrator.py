@@ -113,11 +113,19 @@ class Orchestrator:
         audit.append(self._event('options', options))
 
         self._emit(event_callback, 'agent_start', agent='scoring', display_name='محرك التقييم', stage='scoring', source='python')
-        criteria=normalize_criteria(getattr(case,'scoring_criteria',None),getattr(case,'scoring_weights',None))
-        scored = score_options(options.data.get('options', []), criteria=criteria)
+        criteria = normalize_criteria(getattr(case, 'scoring_criteria', None), getattr(case, 'scoring_weights', None))
+        raw_opts = options.data.get('options', [])
+        scored = score_options(raw_opts, criteria=criteria)
+        
+        provenance_map = {}
+        for opt in scored:
+            opt_id = opt.get('id')
+            for prov_key, cell_prov in (opt.get('criterion_provenance') or {}).items():
+                provenance_map[f"{opt_id}:{prov_key}"] = cell_prov
+
         scoring = AgentResult(
-            'scoring', 'success', 'تقييم البدائل', 'تم حساب الدرجات داخل النظام.',
-            data={'options': scored,'criteria':criteria}, confidence=1,
+            'scoring', 'success', 'تقييم البدائل', 'تم حساب الدرجات ونسب المساهمة والبوابات الإلزامية وسجل الإسناد بشكل حتمي.',
+            data={'options': scored, 'criteria': criteria, 'score_provenance': provenance_map}, confidence=1,
             metadata={'analysis_source': 'python', 'estimated_cost_usd': 0.0},
         )
         ctx.results['scoring'] = scoring
@@ -136,11 +144,18 @@ class Orchestrator:
         evidence_data = evidence.data
         chief_data = chief.data
         critic_data = critic.data
-        baseline_sensitivity=sensitivity_analysis(options.data.get('options',[]),criteria)
+        baseline_sensitivity = sensitivity_analysis(raw_opts, criteria)
+        
+        top_qualified_leader = (
+            scored[0].get('id')
+            if (scored and scored[0].get('score_valid') and not scored[0].get('is_disqualified'))
+            else chief_data.get('recommended_option_id', '')
+        )
+
         deterministic_confidence, confidence_breakdown = compose_confidence(
             {**evidence_data, 'sources': evidence.sources}, scored,
-            clarifications=evidence_data.get('missing_information',[]),assumptions=evidence_data.get('assumptions',[]),
-            conflicts=critic_data.get('challenges',[]),sensitivity=baseline_sensitivity,
+            clarifications=evidence_data.get('missing_information', []), assumptions=evidence_data.get('assumptions', []),
+            conflicts=critic_data.get('challenges', []), sensitivity=baseline_sensitivity,
         )
         any_ai = any(r.metadata.get('analysis_source') == 'openai' for r in ctx.results.values())
         total_cost = round(sum(float(x.get('estimated_cost_usd', 0) or 0) for x in audit), 6)
@@ -154,10 +169,12 @@ class Orchestrator:
             'selected_agents': plan.selected,
             'skipped_agents': plan.skipped,
             'agent_results': {k: v.to_dict() for k, v in ctx.results.items()},
+            'options': scored,
+            'score_provenance': provenance_map,
             'analysis': {
                 'executive': {
                     'decision': chief_data.get('decision_label', chief.headline),
-                    'recommended_option_id': chief_data.get('recommended_option_id', ''),
+                    'recommended_option_id': top_qualified_leader,
                     'confidence': deterministic_confidence,
                     'confidence_breakdown': confidence_breakdown,
                     'why': chief_data.get('why', []),
@@ -171,9 +188,17 @@ class Orchestrator:
                 'readiness': evidence_data.get('readiness', 'low'),
                 'evidence_sources': evidence.sources,
                 'options': scored,
-                'scoring_criteria':criteria,
-                'calculation_metadata':{'scoring_method':'weighted-normalized-v2','confidence_method':'deterministic-v2','generated_at':datetime.now(timezone.utc).isoformat()},
-                'sensitivity':baseline_sensitivity,
+                'scoring_criteria': criteria,
+                'score_provenance': provenance_map,
+                'calculation_metadata': {
+                    'scoring_method': 'weighted-normalized-v9-provenance',
+                    'confidence_method': 'deterministic-v2',
+                    'generated_at': datetime.now(timezone.utc).isoformat(),
+                    'gates_enforced': True,
+                    'scenarios_available': len(baseline_sensitivity.get('presets', [])),
+                },
+                'sensitivity': baseline_sensitivity,
+                'scenarios': baseline_sensitivity.get('presets', []),
                 'critic': critic_data,
                 'run_metrics': {
                     'estimated_cost_usd': total_cost,

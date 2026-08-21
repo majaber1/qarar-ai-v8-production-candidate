@@ -30,6 +30,9 @@ class DecisionCase(Base):
     scoring_weights:Mapped[dict[str,float]|None]=mapped_column(JSON,nullable=True)
     scoring_criteria:Mapped[list[dict[str,Any]]|None]=mapped_column(JSON,nullable=True)
     calculation_metadata:Mapped[dict[str,Any]|None]=mapped_column(JSON,nullable=True)
+    options:Mapped[list[dict[str,Any]]|None]=mapped_column(JSON,nullable=True)
+    score_provenance:Mapped[dict[str,Any]|None]=mapped_column(JSON,nullable=True)
+    override_history:Mapped[list[dict[str,Any]]|None]=mapped_column(JSON,nullable=True)
     created_at:Mapped[datetime]=mapped_column(DateTime,default=lambda: datetime.now(timezone.utc))
     updated_at:Mapped[datetime]=mapped_column(DateTime,default=lambda: datetime.now(timezone.utc),onupdate=lambda: datetime.now(timezone.utc))
 

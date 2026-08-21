@@ -11,6 +11,20 @@ class ScoringCriterion(BaseModel):
     scale_max:float=100
     direction:Literal['higher_better','lower_better']='higher_better'
     missing_policy:Literal['incomplete','exclude']='incomplete'
+    is_gate:bool=False
+    gate_min:float|None=None
+    gate_max:float|None=None
+    evidence_requirement:str|None=None
+
+class DecisionOptionInput(BaseModel):
+    id:str=Field(min_length=1,max_length=80)
+    title:str=Field(min_length=2,max_length=250)
+    description:str=Field(default='',max_length=2000)
+    benefits:list[str]|None=None
+    risks:list[str]|None=None
+    conditions:list[str]|None=None
+    criterion_scores:dict[str,float]|None=None
+    criterion_provenance:dict[str,Any]|None=None
 
 class CaseCreate(BaseModel):
     project_id:int|None=None
@@ -21,6 +35,7 @@ class CaseCreate(BaseModel):
     language:Literal['ar','en']='ar'
     scoring_weights:dict[str,float]|None=None
     scoring_criteria:list[ScoringCriterion]|None=None
+    options:list[DecisionOptionInput]|None=None
 
 class CaseUpdate(BaseModel):
     title:str|None=Field(default=None,min_length=3,max_length=250)
@@ -30,6 +45,7 @@ class CaseUpdate(BaseModel):
     project_id:int|None=None
     scoring_weights:dict[str,float]|None=None
     scoring_criteria:list[ScoringCriterion]|None=None
+    options:list[DecisionOptionInput]|None=None
 
 class CaseTransitionRequest(BaseModel):
     status:Literal['draft','open','needs_information','ready_for_analysis','analyzing','recommendation_ready','pending_approval','approved','rejected','deferred','reopened','archived']
@@ -39,6 +55,12 @@ class ApprovalRequest(BaseModel):
     option_id:str
     decision_owner:str=Field(min_length=2)
     due_date:date|None=None
+
+class ScoreOverrideRequest(BaseModel):
+    option_id:str=Field(min_length=1,max_length=80)
+    criterion_key:str=Field(min_length=1,max_length=80)
+    new_score:float
+    reason:str=Field(min_length=3,max_length=1000)
 
 class CaseResponse(BaseModel):
     id:int
@@ -65,6 +87,9 @@ class CaseResponse(BaseModel):
     scoring_weights:dict[str,float]|None=None
     scoring_criteria:list[dict[str,Any]]|None=None
     calculation_metadata:dict[str,Any]|None=None
+    options:list[dict[str,Any]]|None=None
+    score_provenance:dict[str,Any]|None=None
+    override_history:list[dict[str,Any]]|None=None
     created_at:datetime
     updated_at:datetime
     model_config=ConfigDict(from_attributes=True)

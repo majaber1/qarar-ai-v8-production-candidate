@@ -1,23 +1,23 @@
 # قرار | Qarar — Decision Intelligence Platform
 
-**Version 8.2.0-beta.1 — قرارات أوضح. بثقة أكبر. / Decide Better.**
+**Version 9.0.0-beta.1 — قرارات أوضح. بثقة أكبر. / Decide Better.**
 
-Evidence → Decision → Human Approval → Action, with tenant isolation and an auditable trail.
+Evidence → Decision Provenance → Mandatory Gates → Business Scenarios → Human Review → Audited Action.
 
-## What V8 combines
+## What V9 delivers
 
-V8 uses the richer V6 platform as its base and carries forward the security and frontend fixes from the partial V7 candidate. It adds the missing integration between Knowledge Fabric and Decision Council, normal/live policy parity, signed automation callbacks, safer storage and networking, and a clean Next.js 16 frontend.
+V9 elevates Qarar to an authoritative, enterprise Decision Intelligence system with end-to-end score provenance, mandatory disqualification gates, 5 business scenarios, customizable criteria & explicit options, and audited human overrides:
 
-| Area | V8 behavior |
+| Area | V9 behavior |
 |---|---|
-| Decision Council | Dynamic experts, structured per-case criteria, deterministic scoring/confidence, sensitivity analysis, critic and chief recommendation |
-| Knowledge Fabric | Tenant/case-scoped hybrid retrieval, trust/review metadata, versioned replacement, and soft deletion |
-| Live analysis | Same budget, rate-limit, evidence, clarification and audit controls as normal analysis |
-| Automation | Approved-case gate, host allowlist, HMAC-SHA256 callback, timestamp and nonce replay protection |
-| Data | PostgreSQL/pgvector in production; Alembic is the production schema owner |
-| Access | API keys or OIDC, tenant isolation, role gates; MCP service key has no admin role |
-| Decision loop | Draft-to-archive lifecycle, executive approval, persisted owners/actions/dependencies, outcomes, lessons and follow-up summaries |
-| UI | Executive, PM/operator and developer/admin experiences; Arabic/English, RTL/LTR, desktop and mobile |
+| Evidence → Score Provenance | Every score is traceable to Knowledge Fabric citations, trust ratings (A/B/C/D), confidence, and deterministic calculation steps |
+| Mandatory Gates | Disqualifying thresholds that disqualify non-compliant options while retaining numeric scores for full auditability |
+| Business Scenarios | 5 automated scenario presets (Balanced, Risk & Compliance, Cost, Speed, Strategic Growth) with instant sensitivity diff |
+| Human Review & Overrides | Authorized overrides with mandatory justification, instant deterministic recalculation, and recommendation stale detection |
+| Decision Templates | 5 industry-standard decision templates (Cloud, Cybersecurity MDR, Tender Award, Regional Expansion, AI Portfolio) |
+| Visual Criteria Builder | Interactive visual editor for custom weights, directions, scales, and gate thresholds |
+| Deterministic Authority | Python-based deterministic scoring engine remains 100% authoritative over AI synthesis |
+| Enterprise Security & UI | Tenant isolation, bilingual RTL/LTR, Next.js 16 (App Router), PostgreSQL/Alembic migrations, Playwright E2E coverage |
 
 ## Explainable calculation model
 

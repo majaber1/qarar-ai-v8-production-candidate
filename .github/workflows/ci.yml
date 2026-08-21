@@ -2,7 +2,7 @@ name: Qarar CI
 
 on:
   push:
-    branches: [main, codex/accelerator-readiness]
+    branches: [main, codex/accelerator-readiness, codex/v9-decision-provenance]
   pull_request:
 
 permissions:

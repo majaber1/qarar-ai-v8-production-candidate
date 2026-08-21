@@ -15,13 +15,19 @@ from app.models.case import DecisionAction, DecisionCase, DecisionOutcome
 from app.models.fabric import KnowledgeSource
 from app.models.security import DecisionApproval
 from app.models.workspace import Project
-from app.schemas.case import CaseCreate, CaseResponse, CaseTransitionRequest, CaseUpdate, ApprovalRequest
+from app.schemas.case import (
+    CaseCreate, CaseResponse, CaseTransitionRequest, CaseUpdate,
+    ApprovalRequest, ScoreOverrideRequest
+)
 from app.services.advisor import analyze_case
 from app.services.clarification import classify_missing_information
 from app.services.contracts import CaseInput
 from app.services.fabric import ingest_source
 from app.services.orchestrator import orchestrator
-from app.services.tools.scoring import normalize_criteria, normalize_weights, sensitivity_analysis
+from app.services.tools.scoring import (
+    normalize_criteria, normalize_weights, sensitivity_analysis,
+    score_options, compose_confidence, DECISION_TEMPLATES, SCENARIO_PRESETS
+)
 
 class ClarificationAnswers(BaseModel):
     answers: dict[str, str]
@@ -58,6 +64,16 @@ router = APIRouter(prefix='/cases', tags=['cases'])
 
 def _case_for_tenant(db: Session, case_id: int, tenant_id: str) -> DecisionCase | None:
     return db.scalar(select(DecisionCase).where(DecisionCase.id == case_id, DecisionCase.tenant_id == tenant_id))
+
+
+@router.get('/templates')
+def get_templates():
+    return DECISION_TEMPLATES
+
+
+@router.get('/scenarios/presets')
+def get_scenario_presets():
+    return SCENARIO_PRESETS
 
 
 @router.get('/follow-up/summary')
@@ -186,9 +202,11 @@ def analyze(case_id: int, db: Session = Depends(get_db), principal: Principal = 
     if not ok:
         raise HTTPException(429, reason)
     previous=x.status;x.status='analyzing';db.commit()
-    r = analyze_case(x.id, x.title, x.description, x.urgency, x.category, x.language, principal.tenant_id, x.scoring_weights, x.scoring_criteria)
+    r = analyze_case(x.id, x.title, x.description, x.urgency, x.category, x.language, principal.tenant_id, x.scoring_weights, x.scoring_criteria, options=x.options)
     x.selected_agents=r['selected_agents']; x.skipped_agents=r['skipped_agents']; x.agent_results=r['agent_results']
     x.analysis=r['analysis']; x.audit_log=r['audit_log']; x.analysis_source=r['analysis_source'];x.calculation_metadata=(r['analysis'] or {}).get('calculation_metadata')
+    x.options = r.get('options')
+    x.score_provenance = r.get('score_provenance')
 
     # Intelligent clarification gate: only surface it the FIRST time (once the PM has answered,
     # x.clarification_answers is set and we don't re-block on the same unresolved unknowns forever).
@@ -257,7 +275,7 @@ def analyze_stream(case_id: int, principal: Principal = Depends(require_roles('p
         x.status = 'analyzing'
         db.commit()
         case = CaseInput(x.id, x.title, x.description, x.urgency, x.category, x.language, tenant_id,
-                         scoring_weights=x.scoring_weights,scoring_criteria=x.scoring_criteria)
+                         scoring_weights=x.scoring_weights, scoring_criteria=x.scoring_criteria, options=x.options)
 
     events: queue.Queue = queue.Queue()
     done = object()
@@ -274,6 +292,8 @@ def analyze_stream(case_id: int, principal: Principal = Depends(require_roles('p
                     target.selected_agents=result['selected_agents']; target.skipped_agents=result['skipped_agents']
                     target.agent_results=result['agent_results']; target.analysis=result['analysis']; target.audit_log=result['audit_log']
                     target.analysis_source=result['analysis_source'];target.calculation_metadata=(result['analysis'] or {}).get('calculation_metadata')
+                    target.options = result.get('options')
+                    target.score_provenance = result.get('score_provenance')
                     unknowns=(result['analysis'] or {}).get('unknowns') or []
                     gate=classify_missing_information(unknowns,tenant_id,target.id) if unknowns and not target.clarification_answers else {'top_questions':[]}
                     target.pending_clarifications=gate['top_questions'] or None
@@ -300,6 +320,134 @@ def analyze_stream(case_id: int, principal: Principal = Depends(require_roles('p
         media_type='application/x-ndjson',
         headers={'Cache-Control':'no-cache, no-transform','X-Accel-Buffering':'no'},
     )
+
+
+@router.post('/{case_id}/override', response_model=CaseResponse)
+def override_score(case_id: int, payload: ScoreOverrideRequest, db: Session = Depends(get_db),
+                   principal: Principal = Depends(require_roles('project_manager', 'developer', 'executive'))):
+    case = _case_for_tenant(db, case_id, principal.tenant_id)
+    if not case:
+        raise HTTPException(404, 'Case not found')
+    if not case.analysis:
+        raise HTTPException(400, 'Case must be analyzed before overriding scores')
+    
+    options = case.analysis.get('options') or []
+    target_opt = next((o for o in options if str(o.get('id')) == str(payload.option_id)), None)
+    if not target_opt:
+        raise HTTPException(404, f"Option '{payload.option_id}' not found in case analysis")
+    
+    criteria = case.scoring_criteria or []
+    target_crit = next((c for c in criteria if c.get('key') == payload.criterion_key), None)
+    if not target_crit:
+        raise HTTPException(404, f"Criterion '{payload.criterion_key}' not found in scoring criteria")
+    
+    now_iso = datetime.now(timezone.utc).isoformat()
+    prev_raw = (target_opt.get('criterion_scores') or {}).get(payload.criterion_key)
+    override_entry = {
+        'option_id': payload.option_id,
+        'criterion_key': payload.criterion_key,
+        'criterion_name': target_crit.get('name', payload.criterion_key),
+        'previous_score': prev_raw,
+        'new_score': payload.new_score,
+        'reason': payload.reason,
+        'actor': principal.subject,
+        'timestamp': now_iso,
+    }
+    
+    existing_overrides = list(case.override_history or [])
+    existing_overrides = [o for o in existing_overrides if not (str(o.get('option_id')) == str(payload.option_id) and o.get('criterion_key') == payload.criterion_key)]
+    existing_overrides.append(override_entry)
+    case.override_history = existing_overrides
+    
+    base_options = case.options or [
+        {'id': o.get('id'), 'title': o.get('title'), 'description': o.get('description'), 'benefits': o.get('benefits'), 'risks': o.get('risks'), 'conditions': o.get('conditions'), 'criterion_scores': o.get('criterion_scores', {})}
+        for o in options
+    ]
+    recalculated_options = score_options(base_options, criteria=criteria, overrides=existing_overrides)
+    
+    provenance_map = dict(case.score_provenance or {})
+    for opt in recalculated_options:
+        opt_id = opt.get('id')
+        for prov_key, cell_prov in (opt.get('criterion_provenance') or {}).items():
+            provenance_map[f"{opt_id}:{prov_key}"] = cell_prov
+            
+    case.score_provenance = provenance_map
+    case.options = recalculated_options
+    
+    new_sensitivity = sensitivity_analysis(recalculated_options, criteria)
+    
+    prev_leader = (case.analysis.get('executive') or {}).get('recommended_option_id')
+    new_leader = recalculated_options[0].get('id') if (recalculated_options and recalculated_options[0].get('score_valid') and not recalculated_options[0].get('is_disqualified')) else prev_leader
+    leader_changed = (prev_leader != new_leader)
+    
+    evidence_sources = case.analysis.get('evidence_sources') or []
+    facts = case.analysis.get('facts') or []
+    unknowns = case.analysis.get('unknowns') or []
+    det_conf, conf_breakdown = compose_confidence(
+        {'facts': facts, 'missing_information': unknowns, 'sources': evidence_sources},
+        recalculated_options,
+        clarifications=unknowns,
+        sensitivity=new_sensitivity,
+    )
+    
+    from sqlalchemy.orm.attributes import flag_modified
+    
+    updated_analysis = dict(case.analysis or {})
+    exec_block = dict(updated_analysis.get('executive') or {})
+    exec_block['recommended_option_id'] = new_leader
+    exec_block['confidence'] = det_conf
+    exec_block['confidence_breakdown'] = conf_breakdown
+    
+    if leader_changed:
+        exec_block['recommendation_stale'] = True
+        exec_block['stale_reason'] = f"تم تعديل الدرجة بواسطة {principal.subject} مما غيّر التوصية من الخيار '{prev_leader}' إلى الخيار '{new_leader}'."
+        if case.status == 'approved' and case.approved_option != new_leader:
+            case.status = 'recommendation_ready'
+            case.approved_option = None
+
+    updated_analysis['executive'] = exec_block
+    updated_analysis['options'] = recalculated_options
+    updated_analysis['score_provenance'] = provenance_map
+    updated_analysis['sensitivity'] = new_sensitivity
+    updated_analysis['scenarios'] = new_sensitivity.get('presets', [])
+    
+    case.analysis = updated_analysis
+    case.options = recalculated_options
+    case.score_provenance = provenance_map
+    case.override_history = existing_overrides
+    
+    flag_modified(case, 'analysis')
+    flag_modified(case, 'options')
+    flag_modified(case, 'score_provenance')
+    flag_modified(case, 'override_history')
+            
+    db.commit()
+    db.refresh(case)
+    
+    record_audit(principal.tenant_id, principal.subject, 'score_overridden', auth_type=principal.auth_type,
+                 resource_type='case', resource_id=case.id,
+                 metadata={'option_id': payload.option_id, 'criterion_key': payload.criterion_key, 'new_score': payload.new_score, 'reason': payload.reason})
+    return case
+
+
+@router.get('/{case_id}/provenance/{option_id}/{criterion_key}')
+def get_score_provenance(case_id: int, option_id: str, criterion_key: str, db: Session = Depends(get_db),
+                         principal: Principal = Depends(require_principal)):
+    case = _case_for_tenant(db, case_id, principal.tenant_id)
+    if not case or not case.analysis:
+        raise HTTPException(404, 'Analyzed case not found')
+    prov_map = case.score_provenance or case.analysis.get('score_provenance') or {}
+    cell_key = f"{option_id}:{criterion_key}"
+    if cell_key in prov_map:
+        return prov_map[cell_key]
+    options = case.analysis.get('options') or []
+    target_opt = next((o for o in options if str(o.get('id')) == str(option_id)), None)
+    if target_opt:
+        prov = (target_opt.get('criterion_provenance') or {}).get(criterion_key)
+        if prov:
+            return prov
+    raise HTTPException(404, f"Provenance for option '{option_id}' criterion '{criterion_key}' not found")
+
 
 
 @router.post('/{case_id}/approve', response_model=CaseResponse)

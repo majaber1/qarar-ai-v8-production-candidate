@@ -51,7 +51,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title='Qarar AI — Decision Intelligence Platform', version='8.2.0-beta.1', lifespan=lifespan)
+app = FastAPI(title='Qarar AI — Decision Intelligence Platform', version='9.0.0-beta.1', lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=settings.cors_list, allow_credentials=True, allow_methods=['*'], allow_headers=['*'])
 
 
@@ -85,13 +85,13 @@ for r in [cases_router, platform_router, legacy_knowledge_router, fabric_router,
 
 @app.get('/')
 def root():
-    return {'name': 'Qarar AI V8', 'category': 'Enterprise Decision Intelligence Platform', 'docs': '/docs',
+    return {'name': 'Qarar AI V9', 'category': 'Enterprise Decision Intelligence Platform', 'docs': '/docs',
             'mcp': settings.mcp_public_base_url.rstrip('/') + '/mcp', 'security': 'authenticated tenant-scoped API'}
 
 
 @app.get('/api/health')
 def health():
-    return {'status': 'ok', 'version': '8.2.0-beta.1', 'ai_enabled': settings.ai_enabled, 'provider': settings.ai_provider,
+    return {'status': 'ok', 'version': '9.0.0-beta.1', 'ai_enabled': settings.ai_enabled, 'provider': settings.ai_provider,
             'database': 'postgresql' if settings.is_postgres else 'sqlite',
             'knowledge': 'ready', 'mcp_gateway': 'ready', 'automation': 'approval-enforced', 'auth': 'required'}
 
