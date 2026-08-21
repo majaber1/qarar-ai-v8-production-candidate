@@ -1,10 +1,14 @@
 # قرار | Qarar — Decision Intelligence Platform
 
-**Version 9.0.0-beta.1 — قرارات أوضح. بثقة أكبر. / Decide Better.**
+**Version 10.0.0-beta.1 — قرارات أوضح. بثقة أكبر. / Decide Better.**
 
 Evidence → Decision Provenance → Mandatory Gates → Business Scenarios → Human Review → Audited Action.
 
-## What V9 delivers
+## Public Application
+- **Production URL**: [https://qarar-ai-v10.vercel.app](https://qarar-ai-v10.vercel.app)
+- **Architecture**: Single public product URL for users, demos, and reviewers; Next.js server-side reverse proxy securely binds to internal FastAPI backend (`qarar-ai-backend`).
+
+## What V10 delivers
 
 V9 elevates Qarar to an authoritative, enterprise Decision Intelligence system with end-to-end score provenance, mandatory disqualification gates, 5 business scenarios, customizable criteria & explicit options, and audited human overrides:
 

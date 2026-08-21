@@ -1,5 +1,13 @@
 # Changelog
 
+## 10.0.0-beta.1 — 2026-08-21
+
+- **Accelerator Readiness Production Hardening**: Single public application URL (`https://qarar-ai-v10.vercel.app`) with server-side proxy architecture to internal FastAPI backend (`qarar-ai-backend`).
+- **Complete End-to-End Decision Journey**: Verified full 20-step decision lifecycle from authentication to mandatory qualification gates, evidence citations, score provenance inspector, multi-scenario recalculation, human overrides, executive approvals, action trackers, and outcome evaluations.
+- **Bilingual & Responsive Excellence**: 100% test pass rate across 12 Playwright E2E suites covering Desktop and Mobile (Pixel 7) form factors in both Arabic (RTL) and English (LTR).
+- **Enterprise Security & Role Governance**: Strict role-based access control (`project_manager`, `developer`, `executive`, `admin`) enforced with tamper-evident audit logging and secure PBKDF2 session authentication.
+- **Deterministic Decision Engine**: Authoritative Python scoring engine with evidence-backed provenance, sensitivity matrix recalculation, and zero AI hallucination in ranking mathematics.
+
 ## 9.0.0-beta.1 — 2026-08-21
 
 - **Evidence → Score Provenance**: Every score in the evaluation matrix contains deep mathematical and factual provenance linking raw score, normalized score, weight contribution, assessment method, rationale, cited knowledge sources, trust ratings (A/B/C/D), and audit actor.

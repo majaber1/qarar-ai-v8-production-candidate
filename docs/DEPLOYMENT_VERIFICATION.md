@@ -3,6 +3,7 @@
 | Item | Verified value |
 |---|---|
 | Repository | `majaber1/qarar-ai-v10` |
+| Release Version | `10.0.0-beta.1` |
 | Source branch | `main` / `codex/accelerator-readiness` |
 | Vercel team | `20262031` (`majaber1`) |
 | Frontend project | `qarar-ai-v10` (Project ID: `prj_mlu8LnDKaKbcDe8rLaqvf76M1GD6`) |

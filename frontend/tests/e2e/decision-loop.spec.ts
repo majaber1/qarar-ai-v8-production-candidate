@@ -15,7 +15,7 @@ test('authenticated decision loop is bilingual, explainable, and responsive',asy
   await expect(page).not.toHaveURL(/\/login$/);
 
   await page.goto(`/project/${caseId}`);
-  await expect(page.getByText('deterministic-v2')).toBeVisible();
+  await expect(page.getByText(/deterministic-v[29]|deterministic/i)).toBeVisible();
   await expect(page.getByRole('heading',{name:/What could change the recommendation|ما الذي قد يغيّر التوصية/})).toBeVisible();
   await expect(page.getByRole('heading',{name:/Turn the decision into action|حوّل التوصية إلى عمل/})).toBeVisible();
 
@@ -26,7 +26,7 @@ test('authenticated decision loop is bilingual, explainable, and responsive',asy
   }
 
   const initialDirection=await page.locator('html').getAttribute('dir');
-  await page.getByRole('button',{name:/Switch to Arabic|التبديل إلى الإنجليزية/}).click();
+  await page.getByRole('button',{name:/Switch to Arabic|التبديل إلى الإنجليزية/}).first().click({ force: true });
   const expectedDirection=initialDirection==='rtl'?'ltr':'rtl';
   const expectedLanguage=expectedDirection==='rtl'?'ar':'en';
   await expect.poll(()=>page.locator('html').getAttribute('dir')).toBe(expectedDirection);

@@ -24,5 +24,5 @@ test('V9 decision journey includes templates, criteria builder, and decision mat
 
   // 4. View existing case
   await page.goto('/project/1');
-  await expect(page.getByText(/v9-provenance|Decision Matrix|مصفوفة القرار/)).toBeVisible();
+  await expect(page.getByText('v9-provenance').first()).toBeVisible();
 });
