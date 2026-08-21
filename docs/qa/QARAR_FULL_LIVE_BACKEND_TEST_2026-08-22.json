@@ -1,0 +1,449 @@
+{
+  "test_date": "2026-08-21T22:09:12.776144+00:00",
+  "version": "10.0.0-beta.1",
+  "total_tests": 97,
+  "passed": 97,
+  "failed": 0,
+  "pass_rate": 100.0,
+  "verdict": "GO",
+  "phases": {
+    "P2": {
+      "pass": 6,
+      "fail": 0
+    },
+    "P3": {
+      "pass": 16,
+      "fail": 0
+    },
+    "P4": {
+      "pass": 3,
+      "fail": 0
+    },
+    "P5": {
+      "pass": 11,
+      "fail": 0
+    },
+    "P6": {
+      "pass": 10,
+      "fail": 0
+    },
+    "P7": {
+      "pass": 7,
+      "fail": 0
+    },
+    "P8": {
+      "pass": 4,
+      "fail": 0
+    },
+    "P9": {
+      "pass": 10,
+      "fail": 0
+    },
+    "P10": {
+      "pass": 8,
+      "fail": 0
+    },
+    "P11": {
+      "pass": 7,
+      "fail": 0
+    },
+    "P12": {
+      "pass": 12,
+      "fail": 0
+    },
+    "P13": {
+      "pass": 3,
+      "fail": 0
+    }
+  },
+  "results": {
+    "P2|Root endpoint returns 200": {
+      "status": "PASS",
+      "detail": "status=200"
+    },
+    "P2|Health endpoint": {
+      "status": "PASS",
+      "detail": "version=10.0.0-beta.1"
+    },
+    "P2|Readiness probe": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P2|Whoami rejects unauthenticated": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P2|Templates endpoint (public)": {
+      "status": "PASS",
+      "detail": "templates=5"
+    },
+    "P2|Scenario presets (public)": {
+      "status": "PASS",
+      "detail": "presets=5"
+    },
+    "P3|Register user A (PM)": {
+      "status": "PASS",
+      "detail": "status=202"
+    },
+    "P3|Register user B (Executive)": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P3|Register user C (different tenant)": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P3|Duplicate registration returns 202 (no leak)": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P3|Login user A": {
+      "status": "PASS",
+      "detail": "expires_in=28800"
+    },
+    "P3|Login user B (executive)": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P3|Login user C (other tenant)": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P3|Whoami returns correct identity": {
+      "status": "PASS",
+      "detail": "subject=user:1, tenant=qa-workspace"
+    },
+    "P3|Wrong password returns 401": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P3|Wrong tenant returns 401": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P3|Profile endpoint": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P3|Profile update": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P3|Password change": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P3|Re-login with new password": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P3|Logout": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P3|Post-logout token rejected": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P4|Create QA project": {
+      "status": "PASS",
+      "detail": "project_id=1"
+    },
+    "P4|List projects": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P4|Get project detail": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P5|Case 1: اختيار منصة الحوسبة السحابية الحكومية": {
+      "status": "PASS",
+      "detail": "id=1, status=draft"
+    },
+    "P5|Case 2: اختيار مزود خدمات الأمن السيبراني MDR": {
+      "status": "PASS",
+      "detail": "id=2, status=draft"
+    },
+    "P5|Case 3: ترسية مناقصة إنشاء مركز البيانات الوطني": {
+      "status": "PASS",
+      "detail": "id=3, status=draft"
+    },
+    "P5|Case 4: التوسع في سوق الإمارات": {
+      "status": "PASS",
+      "detail": "id=4, status=draft"
+    },
+    "P5|Case 5: اختيار محفظة الذكاء الاصطناعي للمؤسسة": {
+      "status": "PASS",
+      "detail": "id=5, status=draft"
+    },
+    "P5|Case 6: اختيار نظام ERP الموحد": {
+      "status": "PASS",
+      "detail": "id=6, status=draft"
+    },
+    "P5|Case 7: استراتيجية إدارة المخاطر لسلسلة التوريد": {
+      "status": "PASS",
+      "detail": "id=7, status=draft"
+    },
+    "P5|Case 8: اختيار منصة الحوكمة والامتثال GRC": {
+      "status": "PASS",
+      "detail": "id=8, status=draft"
+    },
+    "P5|Case 9: اعتماد إطار عمل Zero Trust للأمن المؤسسي": {
+      "status": "PASS",
+      "detail": "id=9, status=draft"
+    },
+    "P5|Case 10: Digital twin strategy for NEOM infrastru": {
+      "status": "PASS",
+      "detail": "id=10, status=draft"
+    },
+    "P5|List all cases": {
+      "status": "PASS",
+      "detail": "count=10"
+    },
+    "P6|Analyze case 1 (id=1)": {
+      "status": "PASS",
+      "detail": "status=needs_clarification, has_analysis=True, has_options=True"
+    },
+    "P6|Analyze case 2 (id=2)": {
+      "status": "PASS",
+      "detail": "status=needs_clarification, has_analysis=True, has_options=True"
+    },
+    "P6|Analyze case 3 (id=3)": {
+      "status": "PASS",
+      "detail": "status=needs_clarification, has_analysis=True, has_options=True"
+    },
+    "P6|Analyze case 4 (id=4)": {
+      "status": "PASS",
+      "detail": "status=needs_clarification, has_analysis=True, has_options=True"
+    },
+    "P6|Analyze case 5 (id=5)": {
+      "status": "PASS",
+      "detail": "status=needs_clarification, has_analysis=True, has_options=True"
+    },
+    "P6|Analyze case 6 (id=6)": {
+      "status": "PASS",
+      "detail": "status=needs_clarification, has_analysis=True, has_options=True"
+    },
+    "P6|Analyze case 7 (id=7)": {
+      "status": "PASS",
+      "detail": "status=needs_clarification, has_analysis=True, has_options=True"
+    },
+    "P6|Analyze case 8 (id=8)": {
+      "status": "PASS",
+      "detail": "status=needs_clarification, has_analysis=True, has_options=True"
+    },
+    "P6|Analyze case 9 (id=9)": {
+      "status": "PASS",
+      "detail": "status=needs_clarification, has_analysis=True, has_options=True"
+    },
+    "P6|Analyze case 10 (id=10)": {
+      "status": "PASS",
+      "detail": "status=needs_clarification, has_analysis=True, has_options=True"
+    },
+    "P7|Case 1 provenance (azure-gcc/compliance)": {
+      "status": "PASS",
+      "detail": "keys=['criterion_key', 'criterion_name', 'raw_score', 'normalized_score', 'weighted_contribution']"
+    },
+    "P7|Case 2 provenance (crowdstrike/compliance)": {
+      "status": "PASS",
+      "detail": "keys=['criterion_key', 'criterion_name', 'raw_score', 'normalized_score', 'weighted_contribution']"
+    },
+    "P7|Case 3 provenance (vendor-b/compliance)": {
+      "status": "PASS",
+      "detail": "keys=['criterion_key', 'criterion_name', 'raw_score', 'normalized_score', 'weighted_contribution']"
+    },
+    "P7|Case 1 score_provenance populated": {
+      "status": "PASS",
+      "detail": "entries=18"
+    },
+    "P7|Case 2 score_provenance populated": {
+      "status": "PASS",
+      "detail": "entries=18"
+    },
+    "P7|Case 1 confidence score": {
+      "status": "PASS",
+      "detail": "confidence=0.54"
+    },
+    "P7|Case 2 confidence score": {
+      "status": "PASS",
+      "detail": "confidence=0.54"
+    },
+    "P8|Case 1 analysis_source": {
+      "status": "PASS",
+      "detail": "source=mock, agents_selected=5, agents_skipped=13"
+    },
+    "P8|Case 1 analysis structure": {
+      "status": "PASS",
+      "detail": "has_facts=True, has_executive=True"
+    },
+    "P8|Case 2 analysis_source": {
+      "status": "PASS",
+      "detail": "source=mock, agents_selected=4, agents_skipped=14"
+    },
+    "P8|Case 2 analysis structure": {
+      "status": "PASS",
+      "detail": "has_facts=True, has_executive=True"
+    },
+    "P9|Case 1 options have scoring fields": {
+      "status": "PASS",
+      "detail": "options=3, weighted_scores=[7.35, 6.85, 6.75]"
+    },
+    "P9|Case 1 ranks are sequential": {
+      "status": "PASS",
+      "detail": "ranks=[1, 2, 3]"
+    },
+    "P9|Case 2 options have scoring fields": {
+      "status": "PASS",
+      "detail": "options=3, weighted_scores=[7.4, 7.15, 6.85]"
+    },
+    "P9|Case 2 ranks are sequential": {
+      "status": "PASS",
+      "detail": "ranks=[1, 2, 3]"
+    },
+    "P9|Case 3 options have scoring fields": {
+      "status": "PASS",
+      "detail": "options=3, weighted_scores=[6.9, 6.85, 5.6]"
+    },
+    "P9|Case 3 ranks are sequential": {
+      "status": "PASS",
+      "detail": "ranks=[1, 2, 3]"
+    },
+    "P9|Score override": {
+      "status": "PASS",
+      "detail": "status=200"
+    },
+    "P9|Override history recorded": {
+      "status": "PASS",
+      "detail": "overrides=1"
+    },
+    "P9|Sensitivity analysis": {
+      "status": "PASS",
+      "detail": "stability=highly_sensitive"
+    },
+    "P9|Sensitivity includes scenario presets": {
+      "status": "PASS",
+      "detail": "presets=5"
+    },
+    "P10|Clarification submitted": {
+      "status": "PASS",
+      "detail": "status=ready_for_analysis"
+    },
+    "P10|Re-analyze after clarification": {
+      "status": "PASS",
+      "detail": "status=recommendation_ready"
+    },
+    "P10|Executive approval": {
+      "status": "PASS",
+      "detail": "approved_option=aws-gov, status=approved"
+    },
+    "P10|Actions auto-created on approval": {
+      "status": "PASS",
+      "detail": "count=3"
+    },
+    "P10|Create manual action": {
+      "status": "PASS",
+      "detail": "id=4"
+    },
+    "P10|Update action status": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P10|Record outcome": {
+      "status": "PASS",
+      "detail": "result=success"
+    },
+    "P10|Follow-up summary": {
+      "status": "PASS",
+      "detail": "data={'open_actions': 4, 'overdue_actions': 0, 'completed_actions': 0}"
+    },
+    "P11|Other tenant sees 0 cases": {
+      "status": "PASS",
+      "detail": "count=0"
+    },
+    "P11|Other tenant sees 0 projects": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P11|Cross-tenant case access blocked": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P11|Cross-tenant project access blocked": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P11|Tenant A cannot see tenant C's case": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P11|Cross-tenant override blocked": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P11|Cross-tenant approval blocked": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P12|Invalid token returns 401": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P12|Missing auth returns 401": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P12|Invalid case creation returns 422": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P12|Short password rejected": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P12|SQL injection in email blocked": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P12|XSS stored safely (JSON response)": {
+      "status": "PASS",
+      "detail": "FastAPI JSON encoding neutralizes XSS"
+    },
+    "P12|Unicode/emoji case creation": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P12|Re-analyze case works": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P12|PM cannot approve (403)": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P12|Invalid status transition returns 409": {
+      "status": "PASS",
+      "detail": "actual=409"
+    },
+    "P12|Nonexistent case returns 404": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P12|Outcome on non-approved case rejected": {
+      "status": "PASS",
+      "detail": ""
+    },
+    "P13|All 10 cases fully analyzed": {
+      "status": "PASS",
+      "detail": "analyzed=10/10"
+    },
+    "P13|No out-of-range normalized scores": {
+      "status": "PASS",
+      "detail": "violations=0"
+    },
+    "P13|Arabic content preserved": {
+      "status": "PASS",
+      "detail": "title=اختيار منصة الحوسبة السحابية ا"
+    }
+  }
+}
