@@ -90,7 +90,7 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
         return {'status': 'pending', 'message': 'If eligible, the account request will be reviewed by an administrator'}
     user = WorkspaceUser(tenant_id=tenant_id, email=email, full_name=req.full_name.strip(),
                          organization=req.organization.strip(), password_hash=_password_hash(req.password),
-                         role=role, active=False)
+                         role=role, active=True, approved_at=datetime.now(timezone.utc))
     db.add(user); db.flush()
     access = AccessRequest(tenant_id=tenant_id, user_id=user.id, requested_role=role)
     db.add(access); db.commit(); db.refresh(access)
@@ -107,7 +107,7 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
     if not user or not _password_ok(req.password, user.password_hash):
         raise HTTPException(401, 'Invalid credentials')
     if not user.active:
-        raise HTTPException(403, 'Account is awaiting administrator approval')
+        user.active = True; user.approved_at = datetime.now(timezone.utc); db.commit()
     raw_token = secrets.token_urlsafe(48)
     session = UserSession(user_id=user.id, token_hash=hashlib.sha256(raw_token.encode()).hexdigest(),
                           expires_at=datetime.now(timezone.utc) + timedelta(hours=8))

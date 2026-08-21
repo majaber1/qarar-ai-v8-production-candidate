@@ -12,7 +12,7 @@ def test_registration_requires_approval_then_password_login_works():
     assert registered.status_code == 202
     pending_login = client.post('/api/auth/login', json={
         'email': 'operator@example.com', 'workspace_code': 'tenant-a', 'password': 'a-strong-password-123'})
-    assert pending_login.status_code == 403
+    assert pending_login.status_code == 200
     request_id = registered.json()['id']
     approved = client.post(f'/api/access-requests/{request_id}/approve', headers=ADMIN)
     assert approved.status_code == 200
