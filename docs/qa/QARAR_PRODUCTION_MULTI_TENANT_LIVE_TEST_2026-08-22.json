@@ -1,0 +1,197 @@
+{
+  "report_type": "production_multi_tenant_live_qa",
+  "test_date": "2026-08-22",
+  "version": "10.0.0-beta.1",
+  "environment": "production",
+  "backend_url": "qarar-ai-backend.vercel.app",
+  "frontend_url": "qarar-ai-v10.vercel.app",
+  "deployment_sha": "d03559217d81f9a6bc658c57129a511ab898c9d3",
+  "vercel_team": "team_mLtuSkiJk36yTV2AW8Y9RiZL",
+  "tester": "Claude Code Remote Session (Automated)",
+  "verdict": "NO-GO",
+  "verdict_reason": "90 of 101 critical production tests could not be executed due to execution environment constraints. NOT EXECUTED does not count as PASS.",
+  "total_tests": 101,
+  "passed": 11,
+  "failed": 0,
+  "not_executed": 90,
+  "pass_rate_of_executed": 100.0,
+  "pass_rate_of_total": 10.9,
+  "execution_constraint": {
+    "issue": "Egress proxy blocks HTTPS CONNECT to *.vercel.app (403 policy denial). Vercel MCP web_fetch_vercel_url supports GET only (no method/body/headers parameters). No browser automation available.",
+    "blocked_methods": ["POST", "PUT", "PATCH", "DELETE", "multipart/form-data"],
+    "available_methods": ["GET (via Vercel MCP only)"]
+  },
+  "synthetic_workspaces": {
+    "disclaimer": "SABIC, Aramco, and Shaqra University are synthetic demo tenant names for QA purposes only. They are NOT Qarar customers.",
+    "workspaces": [
+      {
+        "name": "SABIC Demo",
+        "tenant_id": "sabic-demo-qa",
+        "decision_topic": "اختيار منصة الذكاء الاصطناعي للصيانة التنبؤية للمصانع",
+        "options": ["Azure Industrial AI", "AWS Industrial AI", "GCP Industrial AI"],
+        "status": "NOT_CREATED"
+      },
+      {
+        "name": "Aramco Demo",
+        "tenant_id": "aramco-demo-qa",
+        "decision_topic": "اختيار منصة الأمن السيبراني المؤسسية لخدمات MDR / SOC",
+        "options": ["Microsoft Security", "CrowdStrike Falcon", "Palo Alto Cortex"],
+        "status": "NOT_CREATED"
+      },
+      {
+        "name": "Shaqra University Demo",
+        "tenant_id": "shaqra-university-demo-qa",
+        "decision_topic": "اختيار منصة سحابية لخدمات الجامعة الرقمية والذكاء الاصطناعي",
+        "options": ["Azure for Education", "AWS Academy", "GCP for Education"],
+        "status": "NOT_CREATED"
+      }
+    ]
+  },
+  "production_health": {
+    "status": "ok",
+    "version": "10.0.0-beta.1",
+    "ai_enabled": true,
+    "provider": "openai",
+    "database": "postgresql",
+    "features": {
+      "multi_agent": true,
+      "evidence_pipeline": true,
+      "scoring_engine": true,
+      "sensitivity_analysis": true,
+      "object_storage": true
+    }
+  },
+  "phases": {
+    "pre_flight": {
+      "total": 9,
+      "pass": 9,
+      "fail": 0,
+      "not_executed": 0,
+      "tests": {
+        "PF-1|GitHub main branch SHA": {"status": "PASS", "detail": "SHA d035592 confirmed"},
+        "PF-2|Backend deployment SHA match": {"status": "PASS", "detail": "Production matches GitHub"},
+        "PF-3|Backend health endpoint": {"status": "PASS", "detail": "version=10.0.0-beta.1, ai=openai, db=postgresql"},
+        "PF-4|Backend readiness probe": {"status": "PASS", "detail": "/api/ready returns 200"},
+        "PF-5|Frontend serving": {"status": "PASS", "detail": "200 with HTML content"},
+        "PF-6|Decision templates accessible": {"status": "PASS", "detail": "5 templates returned"},
+        "PF-7|Scenario presets accessible": {"status": "PASS", "detail": "5 presets returned"},
+        "PF-8|Auth enforcement": {"status": "PASS", "detail": "/api/agents returns 401 Unauthorized"},
+        "PF-9|Root endpoint": {"status": "PASS", "detail": "/ returns 200"}
+      }
+    },
+    "A_registration_login": {
+      "total": 20,
+      "pass": 0,
+      "fail": 0,
+      "not_executed": 20,
+      "reason": "POST /api/workspace/register and /api/workspace/login blocked by egress proxy"
+    },
+    "B_role_model_rbac": {
+      "total": 5,
+      "pass": 0,
+      "fail": 0,
+      "not_executed": 5,
+      "reason": "Requires auth tokens from login (Phase A)"
+    },
+    "C_tenant_isolation": {
+      "total": 7,
+      "pass": 0,
+      "fail": 0,
+      "not_executed": 7,
+      "reason": "Requires multiple tenants registered and logged in"
+    },
+    "D_project_creation": {
+      "total": 5,
+      "pass": 0,
+      "fail": 0,
+      "not_executed": 5,
+      "reason": "POST blocked by egress proxy"
+    },
+    "E_decision_cases": {
+      "total": 8,
+      "pass": 0,
+      "fail": 0,
+      "not_executed": 8,
+      "reason": "POST blocked by egress proxy"
+    },
+    "F_evidence_upload": {
+      "total": 5,
+      "pass": 0,
+      "fail": 0,
+      "not_executed": 5,
+      "reason": "POST/multipart blocked by egress proxy"
+    },
+    "G_ai_analysis_agents": {
+      "total": 11,
+      "pass": 0,
+      "fail": 0,
+      "not_executed": 11,
+      "reason": "POST /api/cases/{id}/analyze blocked by egress proxy"
+    },
+    "H_scoring_provenance": {
+      "total": 10,
+      "pass": 0,
+      "fail": 0,
+      "not_executed": 10,
+      "reason": "Requires analysis (Phase G)"
+    },
+    "I_approval_workflow": {
+      "total": 6,
+      "pass": 0,
+      "fail": 0,
+      "not_executed": 6,
+      "reason": "POST blocked by egress proxy"
+    },
+    "J_actions_outcomes": {
+      "total": 5,
+      "pass": 0,
+      "fail": 0,
+      "not_executed": 5,
+      "reason": "Requires approval (Phase I)"
+    },
+    "K_postgresql_persistence": {
+      "total": 3,
+      "pass": 1,
+      "fail": 0,
+      "not_executed": 2,
+      "tests": {
+        "K-1|Database type confirmed": {"status": "PASS", "detail": "database=postgresql"},
+        "K-2|Data survives across requests": {"status": "NOT_EXECUTED", "detail": "Requires write then read"},
+        "K-3|Concurrent tenant isolation": {"status": "NOT_EXECUTED", "detail": "Requires multi-tenant writes"}
+      }
+    },
+    "L_r2_object_storage": {
+      "total": 3,
+      "pass": 1,
+      "fail": 0,
+      "not_executed": 2,
+      "tests": {
+        "L-1|Object storage enabled": {"status": "PASS", "detail": "features.object_storage=true"},
+        "L-2|Evidence upload to R2": {"status": "NOT_EXECUTED", "detail": "POST/multipart blocked"},
+        "L-3|Evidence retrieval from R2": {"status": "NOT_EXECUTED", "detail": "Requires prior upload"}
+      }
+    },
+    "M_screenshots": {
+      "total": 4,
+      "pass": 0,
+      "fail": 0,
+      "not_executed": 4,
+      "reason": "Browser automation not available in this environment"
+    }
+  },
+  "local_qa_reference": {
+    "disclaimer": "Local results are NOT production evidence. Referenced for context only.",
+    "test_date": "2026-08-21",
+    "total_tests": 97,
+    "passed": 97,
+    "failed": 0,
+    "pass_rate": 100.0,
+    "local_verdict": "GO",
+    "limitations": ["SQLite (not PostgreSQL)", "Mock AI (not OpenAI)", "No R2 storage", "Single-process"]
+  },
+  "recommendations": [
+    "Re-run from an environment with unrestricted HTTPS egress to *.vercel.app",
+    "Use Playwright/Puppeteer for frontend screenshots from an environment with browser access",
+    "Use pytest + httpx or similar API test runner for POST operations"
+  ]
+}
