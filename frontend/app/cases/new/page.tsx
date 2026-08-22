@@ -70,7 +70,7 @@ export default function NewCase() {
       const decision = await api.create({
         project_id: projectId ? Number(projectId) : null,
         title: title.trim(),
-        description: description.startsWith('[') ? description : [] ,
+        description: description.trim(),
         urgency,
         category: type,
         language: lang,
