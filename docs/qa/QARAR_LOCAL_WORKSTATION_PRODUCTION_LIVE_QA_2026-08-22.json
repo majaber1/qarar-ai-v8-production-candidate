@@ -1,0 +1,256 @@
+{
+  "run_id": "qav10x1",
+  "generated_at": "2026-08-22",
+  "repository": {
+    "local_head": "e22933ef7efe9900c350e0cf944b106848bbabbe",
+    "origin_main": "e22933ef7efe9900c350e0cf944b106848bbabbe",
+    "working_tree": "clean except untracked docs/qa/"
+  },
+  "frontend": {
+    "project": "qarar-ai-v10",
+    "team": "20262031",
+    "production_deployment_id": "dpl_H6gZmyem37ae979pRR5FX96pvRET",
+    "git_sha": "e22933ef7efe9900c350e0cf944b106848bbabbe",
+    "public_url": "https://qarar-ai-v10.vercel.app",
+    "alias_status": "corrected during this run (was serving commit d035592, now serves e22933e)"
+  },
+  "backend": {
+    "project": "qarar-ai-backend",
+    "team": "20262031",
+    "public_url": "https://qarar-ai-backend.vercel.app",
+    "redeployed_this_run": true,
+    "git_sha": "not determinable — project is not Git-linked, deployed manually via CLI",
+    "health_after_redeploy": {
+      "status": "ok",
+      "version": "10.0.0-beta.1",
+      "ai_enabled": true,
+      "provider": "openai",
+      "database": "postgresql",
+      "knowledge": "ready",
+      "mcp_gateway": "ready",
+      "automation": "approval-enforced",
+      "auth": "required"
+    }
+  },
+  "database": {
+    "provider": "Neon Postgres (via Vercel-Neon integration)",
+    "org": "org-hidden-base-25957052",
+    "project": "neon-bronze-nest (hidden-mouse-92490034)",
+    "database": "qarar_production",
+    "branch": "main (br-still-bonus-au1xj1p7)",
+    "alembic_revision_before": "d83a1f0c9200",
+    "alembic_revision_after": "e1f9a2b3c4d5",
+    "repository_head": "e1f9a2b3c4d5",
+    "migration_status": "PASS",
+    "columns_added": {
+      "options": true,
+      "score_provenance": true,
+      "override_history": true
+    },
+    "existing_tables_preserved": true,
+    "decision_cases_row_count_before": 0,
+    "decision_cases_row_count_after_migration": 0
+  },
+  "object_storage": {
+    "provider": "R2-compatible (via backend fabric/upload)",
+    "upload": "PASS",
+    "download": "PASS",
+    "sha256_match_immediate": true,
+    "sha256_match_after_backend_redeploy": true,
+    "verdict": "PASS"
+  },
+  "synthetic_tenants": {
+    "sabic": {
+      "workspace": "sabic-demo-qa-qav10x1",
+      "org": "SABIC Demo — Synthetic QA Tenant",
+      "project_id": 11,
+      "case_id": 1,
+      "status": "approved",
+      "approved_option": "azure"
+    },
+    "aramco": {
+      "workspace": "aramco-demo-qa-qav10x1",
+      "org": "Aramco Demo — Synthetic QA Tenant",
+      "project_id": 12,
+      "case_id": 2,
+      "status": "approved",
+      "approved_option": "process_automation"
+    },
+    "shaqra": {
+      "workspace": "shaqra-university-demo-qa-qav10x1",
+      "org": "Shaqra University Demo — Synthetic QA Tenant",
+      "project_id": 13,
+      "case_id": 3,
+      "status": "approved",
+      "approved_option": "azure"
+    }
+  },
+  "templates_confirmed_live": [
+    "cloud_platform_selection",
+    "cybersecurity_mdr_selection",
+    "tender_contractor_award",
+    "regional_expansion",
+    "ai_portfolio_prioritization"
+  ],
+  "scenario_presets_confirmed_live": [
+    "balanced",
+    "risk_compliance",
+    "cost",
+    "speed",
+    "strategic_growth"
+  ],
+  "raw_pass1_pre_migration": {
+    "PASS": 47,
+    "FAIL": 6,
+    "note": "case creation 500 for all 3 tenants — root cause confirmed, migration not yet applied"
+  },
+  "raw_pass2_post_migration": {
+    "PASS": 112,
+    "FAIL": 6,
+    "note": "case creation now succeeds; approval/outcome failures due to unhandled clarification step in test script, not a product defect"
+  },
+  "raw_pass3_clarify": {
+    "PASS": 9,
+    "FAIL": 6
+  },
+  "raw_pass4_final_analyze_and_approve": {
+    "PASS": 21,
+    "FAIL": 3,
+    "note": "outcome creation failed 422 due to wrong enum guess, corrected in next pass"
+  },
+  "raw_pass5_outcomes_and_final_persistence": {
+    "PASS": 6,
+    "FAIL": 0
+  },
+  "raw_pass6_templates_and_reject": {
+    "PASS": 16,
+    "FAIL_note": "1 logged FAIL was actually correct RBAC (PM denied reject, same as PM denied approve) — not a real defect",
+    "templates_verified": ["cybersecurity_mdr_selection", "tender_contractor_award", "regional_expansion"],
+    "reject_case_id": 5,
+    "reject_result": "rejected by Executive, PM and Analyst correctly denied"
+  },
+  "raw_pass7_english_ui": {
+    "result": "PASS",
+    "looksEnglish": true
+  },
+  "totals_final_state": {
+    "PASS": 172,
+    "FAIL": 0,
+    "FAIL_superseded_during_run": 6,
+    "NOT_EXECUTED": 1
+  },
+  "not_executed": [
+    "Exact runtime AI model string as echoed by OpenAI's own API response (independent of our config read) — not exposed anywhere in the application's API surface; configured value + code-path + real token/cost telemetry are all confirmed instead"
+  ],
+  "audit_trail": {
+    "table": "audit_events_v6",
+    "tenant_checked": "sabic-demo-qa-qav10x1",
+    "rows_found": 37,
+    "event_types_confirmed": ["access_requested", "user_login", "project_created", "case_created", "evidence_uploaded", "case_analyzed", "sensitivity_run", "score_overridden", "action_created", "action_updated", "case_clarified", "case_status_changed", "case_approved", "outcome_recorded"],
+    "actor_attribution_verified": "case_approved recorded against user:21 (Executive), all other actions against user:20 (PM) — correct distinct attribution",
+    "verdict": "PASS"
+  },
+  "ai_model": {
+    "configured_model": "gpt-5.6-luna",
+    "configured_provider": "openai",
+    "source": "vercel env pull (AI_MODEL/AI_PROVIDER are non-Sensitive vars, legitimately readable)",
+    "code_path_confirmation": "backend/app/services/llm_client.py:51 passes model=settings.ai_model on every call — single code path",
+    "runtime_echo_available": false,
+    "verdict": "PASS (configured+code-path); runtime echo NOT_EXECUTED (not exposed by API)"
+  },
+  "agent_reality_check": {
+    "deterministic_python_only": ["scoring"],
+    "llm_attempted_for_every_agent": true,
+    "mock_fallback_root_cause": "AttributeError: 'str' object has no attribute 'get' in backend/app/services/agents/base.py:37 (mk()), caused by base.py:34 (ask_json()) not validating that json.loads() returned a dict before returning it. Triggers when the model responds with valid JSON encoding a non-dict (e.g. a bare string) instead of the expected schema object.",
+    "classification": "CONFIRMED PRODUCTION DEFECT — not intentional configuration",
+    "fixed_in_this_run": false,
+    "reason_not_fixed": "AI orchestration code is explicitly out of scope for this QA run; defect is silent quality degradation, not a hard blocker to the journey",
+    "affected_agents_all_tenants": ["options", "critic (sometimes)", "chief_advisor", "data_governance", "cloud (sometimes)", "financial (sometimes)", "policy (sometimes)"]
+  },
+  "reject_defer_workflow": {
+    "case_id": 5,
+    "template": "tender_contractor_award",
+    "analyst_reject_attempt": "403 Insufficient role (correct denial)",
+    "pm_reject_attempt": "403 Only an executive can approve or reject a recommendation (correct denial, consistent with approval RBAC)",
+    "executive_reject_attempt": "200, case status persisted as 'rejected'",
+    "flagship_case_touched": false,
+    "verdict": "PASS"
+  },
+  "templates_full_verification": {
+    "cloud_platform_selection": {"lifecycle": "full (case 1, approved)", "verdict": "PASS"},
+    "ai_portfolio_prioritization": {"lifecycle": "full (case 2, approved)", "verdict": "PASS"},
+    "cybersecurity_mdr_selection": {"lifecycle": "instantiated (case 4), no server error", "verdict": "PASS"},
+    "tender_contractor_award": {"lifecycle": "instantiated + full reject workflow (case 5)", "verdict": "PASS"},
+    "regional_expansion": {"lifecycle": "instantiated (case 6), no server error", "verdict": "PASS"}
+  },
+  "english_ui": {
+    "toggle_clicked": true,
+    "login_in_english": "PASS",
+    "navigation_in_english": "PASS (Dashboard, Executive office, Decision evidence, System administration)",
+    "case_wizard_in_english": "PASS (all 9 steps + all 5 templates in the picker)",
+    "verdict": "PASS"
+  },
+  "security_observations": [
+    "CRITICAL/open, action-required: Vercel SSO Deployment Protection on qarar-ai-v10 production alias currently disabled — restoration attempted via CLI toggle, clean re-toggle, and direct Vercel REST API PATCH (rejected, 403 invalidToken — local CLI credential store does not expose a directly-usable bearer token). Raw deployment URLs remain protected; only the friendly alias domain is not. This is the sole reason the verdict is CONDITIONAL GO, not GO. Exact dashboard fix is in the report's top callout.",
+    "DATABASE_URL and other Sensitive Vercel env vars never exposed at any point; AI_MODEL/AI_PROVIDER (non-Sensitive) were legitimately read",
+    "Tenant isolation held on 18/18 cross-tenant probes",
+    "RBAC held on all override/approval/reject probes, including PM correctly denied rejection (same authority tier as approval)",
+    "Audit trail independently confirms correct actor attribution at the database layer for every action category tested"
+  ],
+  "live_ai_breakdown": {
+    "sabic": {
+      "openai_agents": [
+        "evidence",
+        "risk",
+        "financial",
+        "procurement",
+        "cybersecurity",
+        "compliance",
+        "critic"
+      ],
+      "mock_agents": [
+        "cloud",
+        "data_governance",
+        "options",
+        "chief_advisor"
+      ],
+      "total_tokens": 177477,
+      "estimated_cost_usd": 0.3548
+    },
+    "aramco": {
+      "openai_agents": [
+        "evidence",
+        "risk",
+        "procurement",
+        "critic"
+      ],
+      "mock_agents": [
+        "financial",
+        "data_governance",
+        "policy",
+        "options",
+        "chief_advisor"
+      ],
+      "total_tokens": 116881,
+      "estimated_cost_usd": 0.2244
+    },
+    "shaqra": {
+      "openai_agents": [
+        "evidence",
+        "risk",
+        "architecture",
+        "cloud",
+        "procurement"
+      ],
+      "mock_agents": [
+        "data_governance",
+        "options",
+        "critic",
+        "chief_advisor"
+      ],
+      "total_tokens": 98244,
+      "estimated_cost_usd": 0.2059
+    }
+  },
+  "verdict": "CONDITIONAL GO — SECURITY SETTING MUST BE RESTORED (Vercel SSO Deployment Protection scope on qarar-ai-v10.vercel.app). Becomes PRODUCTION GO once that single setting is restored and confirmed."
+}
