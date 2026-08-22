@@ -55,8 +55,14 @@ class BaseAgent(ABC):
             f'LLM did not return a JSON object after {self.MAX_JSON_ATTEMPTS} attempt(s); last response type={last_type}, preview={last_preview!r}'
         )
 
+    @staticmethod
+    def _to_finding(x):
+        if isinstance(x,dict):
+            return Finding(str(x.get('label','')),str(x.get('detail','')),str(x.get('severity','info')),bool(x.get('verified',False)))
+        return Finding(str(x),'','info',False)
+
     def mk(self,d,metadata=None):
-        fs=[Finding(str(x.get('label','')),str(x.get('detail','')),str(x.get('severity','info')),bool(x.get('verified',False))) for x in d.get('findings',[])]
+        fs=[self._to_finding(x) for x in d.get('findings',[])]
         return AgentResult(
             self.name,str(d.get('status','success')),str(d.get('headline','')),str(d.get('summary','')),
             fs,d.get('data',{}),float(d.get('confidence',0)),[str(x) for x in d.get('warnings',[])],

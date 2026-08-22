@@ -112,6 +112,46 @@ def test_e_second_response_still_invalid_yields_clear_failure_not_fake_success(m
     assert result.headline != 'recovered'
 
 
+def test_g_findings_as_plain_strings_does_not_crash(monkeypatch):
+    """Second confirmed production defect: a valid JSON *object* whose `findings`
+    list contains plain strings instead of {label, detail, severity, verified}
+    objects (invited by the loose `'findings': []` schema hint) crashed mk()
+    with the same generic AttributeError, entirely bypassing the ask_json fix.
+    This must be handled gracefully, not crash."""
+    fake_cls, calls = _make_fake_llm_client([
+        (
+            '{"status":"success","headline":"h","summary":"s",'
+            '"findings":["Missing evidence for claim A","Data incomplete for option B"]}',
+            _usage(),
+        ),
+    ])
+    monkeypatch.setattr(base_module, 'LLMClient', fake_cls)
+    result = DummyAgent().run(_ctx())
+    assert result.status == 'success'
+    assert result.error is None
+    assert len(result.findings) == 2
+    assert result.findings[0].label == 'Missing evidence for claim A'
+    assert len(calls) == 1  # this is a valid JSON object, no retry needed
+
+
+def test_h_findings_mixed_dicts_and_strings(monkeypatch):
+    fake_cls, calls = _make_fake_llm_client([
+        (
+            '{"status":"success","headline":"h","summary":"s",'
+            '"findings":[{"label":"proper finding","detail":"d1","severity":"warn","verified":true},"a loose string finding"]}',
+            _usage(),
+        ),
+    ])
+    monkeypatch.setattr(base_module, 'LLMClient', fake_cls)
+    result = DummyAgent().run(_ctx())
+    assert result.status == 'success'
+    assert len(result.findings) == 2
+    assert result.findings[0].label == 'proper finding'
+    assert result.findings[0].verified is True
+    assert result.findings[1].label == 'a loose string finding'
+    assert result.findings[1].verified is False
+
+
 def test_f_existing_specialist_agent_behavior_unchanged_for_normal_responses(monkeypatch):
     """Sanity check: a real concrete SpecialistAgent (RiskAgent) still works
     end-to-end through the full execute()/ask_json()/mk() path when the LLM
